@@ -1,0 +1,70 @@
+/**
+ * Site-wide settings and the artist profile.
+ *
+ * SAMPLE CONTENT: the texts below are
+ * sample copy so the design can be reviewed. Replace them with the artist's
+ * own details. Only add biographical facts and credits the artist approves.
+ */
+import type { ProfileContent, SiteContent } from "@/content/types";
+import studio from "./images/studio/artist-in-studio.jpg";
+
+export const site: SiteContent = {
+  siteName: "Mamush",
+  siteDescription: "Painting, illustration and animation by Mamush — commissions, collaborations and exhibitions.",
+  accentColor: "#2B3A9E",
+  announcement: "Booking commissions for spring",
+
+  hero: {
+    artwork: "water-lily-pond",
+  },
+  selectedWork: [
+    "project:sintel",
+    "artwork:the-childs-bath",
+    "artwork:great-wave",
+    "artwork:stacks-of-wheat",
+    "project:tokaido-road",
+    "artwork:cranes-on-pine",
+    "project:llamigos",
+    "artwork:on-a-balcony",
+  ],
+  featuredProject: "llamigos",
+
+  contactCta: {
+    heading: "Have a project in mind?",
+    text: "Commissions, editorial illustration, animation and collaborations — tell me what you're imagining.",
+    buttonLabel: "Start a conversation",
+  },
+  enquiryTypes: ["Commission", "Editorial illustration", "Animation", "Collaboration", "Exhibition or sale", "Something else"],
+  budgetRanges: ["Under €1,000", "€1,000–5,000", "€5,000–15,000", "Over €15,000"],
+  footerLinks: [{ label: "Image credits", href: "/about#credits" }],
+};
+
+export const profile: ProfileContent = {
+  name: "Mamush",
+  headline: "Painter, illustrator and animator working with light, weather and the quiet drama of everyday scenes.",
+  shortBio:
+    "Mamush moves between the canvas, the printed page and the moving image. Each piece begins with observation — water, cloud, a figure at a window — and is shaped into paintings, editorial illustrations and short animated films.",
+  fullBio: `Mamush moves between the canvas, the printed page and the moving image. Each piece begins with observation — water, cloud, a figure at a window — and is shaped into paintings, editorial illustrations and short animated films.
+
+The studio is full of sketchbooks, colour studies and storyboards, and ideas often travel across several media at once: a painted landscape becomes the backdrop of an animated sequence; a character drawn for a magazine cover grows into a short film.
+
+This biography is sample text for reviewing the design.`,
+  statement: `I'm interested in the moment just before something changes — the wave before it breaks, the light before a storm, the pause before a character moves.
+
+Painting lets me hold that moment still. Animation lets me release it.`,
+  approach: `Projects usually start with a conversation and a set of loose sketches. From there I share colour studies and a short written direction before moving to final artwork, so there are no surprises.
+
+I'm happy to work with art directors, agencies and studios on commissions of any scale, from a single editorial illustration to a full animated sequence.`,
+  email: "hello@example.com",
+  socialLinks: [
+    { platform: "instagram", url: "https://www.instagram.com/" },
+    { platform: "vimeo", url: "https://vimeo.com/" },
+  ],
+  portrait: {
+    src: studio,
+    alt: "A painter in a dim studio holding a palette, with a model in a white dress and a seated woman nearby, in muted greys",
+    caption: "Studio — sample image: James McNeill Whistler, The Artist in His Studio, 1865–66. Art Institute of Chicago, public domain.",
+  },
+  experience: [],
+  recognition: [],
+};

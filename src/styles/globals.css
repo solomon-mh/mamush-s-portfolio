@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ * Colours are kept deliberately quiet so the artwork supplies the energy.
+ * The accent can be overridden from the CMS (Site settings → Accent colour),
+ * which sets --accent on <html> at runtime.
+ */
+:root {
+  --paper: #f7f5f0;
+  --ink: #191919;
+  --graphite: #686868;
+  --rule: #e4e0d8;
+  --accent: #2b3a9e;
+  --paper-deep: #efebe3;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+
+  --font-display: var(--font-bodoni), "Bodoni 72", "Didot", Georgia, serif;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale: a 1.25 ratio for text, opening up to display sizes for headings. */
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.35;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.6;
+  --text-lede: clamp(1.25rem, 1.05rem + 0.7vw, 1.6rem);
+  --text-lede--line-height: 1.4;
+  --text-title: clamp(1.75rem, 1.3rem + 1.6vw, 2.75rem);
+  --text-title--line-height: 1.08;
+  --text-display: clamp(2.75rem, 1.6rem + 5vw, 6.5rem);
+  --text-display--line-height: 0.95;
+  --text-monument: clamp(3.5rem, 1.2rem + 10vw, 11.5rem);
+  --text-monument--line-height: 0.86;
+
+  --container-page: 90rem;
+  --container-prose: 38rem;
+
+  --ease-gallery: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--paper);
+  }
+
+  /* One clearly visible focus treatment everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  [data-surface="night"] :focus-visible {
+    outline-color: var(--paper);
+  }
+
+  img,
+  video,
+  iframe {
+    max-width: 100%;
+  }
+}
+
+@layer components {
+  .page-gutter {
+    padding-inline: 1.25rem;
+  }
+  @media (width >= 40rem) {
+    .page-gutter {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (width >= 48rem) {
+    .page-gutter {
+      padding-inline: 3rem;
+    }
+  }
+  @media (width >= 80rem) {
+    .page-gutter {
+      padding-inline: 5rem;
+    }
+  }
+
+  /* Underline that draws in on hover; always visible for keyboard focus. */
+  .link-quiet {
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 200ms var(--ease-gallery);
+  }
+  .link-quiet:hover,
+  .link-quiet:focus-visible {
+    text-decoration-color: currentColor;
+  }
+
+  /* Rich text set in the editorial voice. */
+  .prose-editorial {
+    max-width: var(--container-prose);
+  }
+  .prose-editorial > * + * {
+    margin-top: 1.1em;
+  }
+  .prose-editorial h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    line-height: var(--text-title--line-height);
+    margin-top: 1.6em;
+  }
+  .prose-editorial h3 {
+    font-weight: 600;
+    margin-top: 1.4em;
+  }
+  .prose-editorial a {
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+  .prose-editorial ul {
+    list-style: disc;
+    padding-left: 1.25em;
+  }
+  .prose-editorial ol {
+    list-style: decimal;
+    padding-left: 1.25em;
+  }
+  .prose-editorial blockquote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-lede);
+    line-height: var(--text-lede--line-height);
+    border-left: 1px solid var(--rule);
+    padding-left: 1.25rem;
+  }
+}
+
+/*
+ * Gallery reveal: images fade in once decoded. Purely presentational —
+ * content is never hidden from assistive tech or when JS is unavailable.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* The one orchestrated moment: the name rises into place on first load. */
+  .hero-rise {
+    animation: hero-rise 1100ms var(--ease-gallery) both;
+  }
+  .hero-fade {
+    animation: media-fade 900ms var(--ease-gallery) 350ms both;
+  }
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.18em);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Shared-element morph between a thumbnail and its detail page. */
+  ::view-transition-group(.morph) {
+    animation-duration: 450ms;
+    animation-timing-function: var(--ease-gallery);
+  }
+
+  .media-fade {
+    animation: media-fade 700ms var(--ease-gallery) both;
+  }
+  @keyframes media-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
