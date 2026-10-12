@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleContactRequest, MAX_BODY_BYTES, type ContactDeps } from "@/features/contact/handler";
-import { createRateLimiter } from "@/features/contact/rate-limit";
+import { clientKey, createRateLimiter } from "@/features/contact/rate-limit";
 import { contactSchema } from "@/features/contact/schema";
 import { EmailDeliveryError, formatEnquiry, sendEnquiryEmail } from "@/features/contact/send-email";
 
@@ -131,6 +131,67 @@ describe("contact API", () => {
     const form = new Request("http://localhost/api/contact", { method: "POST", body: "a=b", headers: { "content-type": "application/x-www-form-urlencoded" } });
     expect((await handleContactRequest(form, deps)).status).toBe(415);
     expect(deps.send).not.toHaveBeenCalled();
+  });
+});
+
+describe("contact API hardening", () => {
+  it("treats a submission without the form timestamp as automated", async () => {
+    const { startedAt, ...withoutTimestamp } = valid;
+    void startedAt;
+    const res = await handleContactRequest(request(withoutTimestamp), deps);
+    expect(res.status).toBe(200); // bots learn nothing
+    expect(deps.send).not.toHaveBeenCalled();
+  });
+
+  it("stops reading a streamed body at the size limit, even without Content-Length", async () => {
+    let pulled = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        if (pulled > 1000) return controller.close(); // ~4 MB if read to the end
+        controller.enqueue(new Uint8Array(4096).fill(32));
+      },
+    });
+    const req = new Request("http://localhost/api/contact", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-real-ip": "192.0.2.10" },
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    expect(req.headers.get("content-length")).toBeNull();
+    expect((await handleContactRequest(req, deps)).status).toBe(413);
+    expect(pulled).toBeLessThan(10); // stopped early instead of buffering everything
+  });
+
+  it("can't be bypassed by forging the first X-Forwarded-For entry", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const forged = { "x-forwarded-for": `10.0.0.${i}, 203.0.113.7` };
+      const res = await handleContactRequest(request({ ...valid, message: `${valid.message} ${i}` }, forged), deps);
+      statuses.push(res.status);
+    }
+    expect(statuses.at(-1)).toBe(429);
+  });
+
+  it("prefers the platform's client address headers", () => {
+    expect(clientKey(new Headers({ "x-forwarded-for": "6.6.6.6", "x-real-ip": "203.0.113.9" }))).toBe("203.0.113.9");
+    expect(clientKey(new Headers({ "x-vercel-forwarded-for": "198.51.100.4", "x-real-ip": "203.0.113.9" }))).toBe("198.51.100.4");
+    expect(clientKey(new Headers({ "x-forwarded-for": "6.6.6.6, 203.0.113.8" }))).toBe("203.0.113.8");
+    expect(clientKey(new Headers())).toBe("unknown");
+  });
+
+  it("keeps rate-limit memory bounded under a flood of distinct clients", () => {
+    const limiter = createRateLimiter({ limit: 5, windowMs: 600_000, maxEntries: 100 });
+    for (let i = 0; i < 5_000; i++) limiter.check(`client-${i}`, NOW);
+    expect(limiter.size()).toBeLessThanOrEqual(100);
+  });
+
+  it("keeps the duplicate-submission memory bounded", async () => {
+    deps.limiter = createRateLimiter({ limit: 10_000, windowMs: 600_000 });
+    for (let i = 0; i < 520; i++) {
+      await handleContactRequest(request({ ...valid, message: `${valid.message} variant ${i}` }), deps);
+    }
+    expect(deps.recent.size).toBeLessThanOrEqual(500);
   });
 });
 

@@ -20,9 +20,40 @@ export interface ContactDeps {
 }
 
 const DUPLICATE_WINDOW_MS = 10 * 60 * 1000;
+/** Cap on remembered submissions so memory stays bounded. */
+const MAX_RECENT = 500;
 
 function json(body: ContactResponse, status: number): Response {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
+}
+
+/**
+ * Reads the body as text, stopping as soon as it exceeds `max` bytes — so a
+ * request without (or with a false) Content-Length can't stream an unbounded
+ * body into memory. Returns null when the limit is exceeded.
+ */
+async function readBodyLimited(request: Request, max: number): Promise<string | null> {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 function fingerprint(data: ContactData): string {
@@ -54,13 +85,13 @@ export async function handleContactRequest(request: Request, deps: ContactDeps):
     );
   }
 
-  let raw: string;
+  let raw: string | null;
   try {
-    raw = await request.text();
+    raw = await readBodyLimited(request, MAX_BODY_BYTES);
   } catch {
     return json({ ok: false, code: "bad_request", message: "The request could not be read." }, 400);
   }
-  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
+  if (raw === null) {
     return json({ ok: false, code: "too_large", message: "Your message is too long. Please shorten it." }, 413);
   }
 
@@ -98,9 +129,10 @@ export async function handleContactRequest(request: Request, deps: ContactDeps):
     );
   }
 
-  // Spam traps: a filled honeypot or an instant submission is almost always a bot.
-  // Respond as if accepted so bots learn nothing, but never send anything.
-  const filledTooFast = data.startedAt !== undefined && now - data.startedAt < MIN_FILL_TIME_MS;
+  // Spam traps: a filled honeypot, a missing form timestamp (the real form always
+  // sends one) or an instant submission is almost always a bot. Respond as if
+  // accepted so bots learn nothing, but never send anything.
+  const filledTooFast = data.startedAt === undefined || now - data.startedAt < MIN_FILL_TIME_MS;
   if (data.website || filledTooFast) {
     log.warn("[contact] Submission discarded by spam checks.");
     return json({ ok: true }, 200);
@@ -150,5 +182,9 @@ export async function handleContactRequest(request: Request, deps: ContactDeps):
   }
 
   deps.recent.set(key, now);
+  for (const oldest of deps.recent.keys()) {
+    if (deps.recent.size <= MAX_RECENT) break;
+    deps.recent.delete(oldest);
+  }
   return json({ ok: true }, 200);
 }
