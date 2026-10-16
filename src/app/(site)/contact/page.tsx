@@ -13,10 +13,10 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 /** Contact happens by email: every button opens the visitor's email app or Gmail, addressed to the artist. */
-export default function ContactPage() {
-  const profile = getProfile();
-  const site = getSettings();
-  const topics = getEnquiryTopics();
+export default async function ContactPage() {
+  const profile = await getProfile();
+  const site = await getSettings();
+  const topics = await getEnquiryTopics();
   const email = profile.email;
 
   return (

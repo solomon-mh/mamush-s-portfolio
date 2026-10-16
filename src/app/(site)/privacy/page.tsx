@@ -10,9 +10,9 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/privacy",
 });
 
-export default function PrivacyPage() {
-  const policy = getSettings().privacyPolicy;
-  const profile = getProfile();
+export default async function PrivacyPage() {
+  const policy = (await getSettings()).privacyPolicy;
+  const profile = await getProfile();
 
   return (
     <>

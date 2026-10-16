@@ -10,28 +10,29 @@ import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { EmailButtons } from "@/components/ui/EmailButtons";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { paragraphs, Prose } from "@/components/ui/Prose";
-import { findRedirect, getArtwork, getProfile, getStaticSlugs } from "@/content";
+import { findRedirect, getArtwork, getContactCta, getProfile, getStaticSlugs } from "@/content";
 import { getSequenceNeighbours } from "@/features/artwork/sequence";
 import { hrefFor } from "@/lib/routes";
 import { buildPageMetadata, creativeWorkJsonLd } from "@/lib/seo";
 
-/** Every page is generated at build time; any other slug is a 404. */
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getStaticSlugs("artwork");
+/*
+ * Pages are generated at build time. Works published later render on their
+ * first visit; unknown slugs are a 404.
+ */
+export async function generateStaticParams() {
+  return await getStaticSlugs("artwork");
 }
 
-function load(slug: string) {
-  const artwork = getArtwork(slug);
+async function load(slug: string) {
+  const artwork = await getArtwork(slug);
   if (artwork) return artwork;
-  const current = findRedirect("artwork", slug);
+  const current = await findRedirect("artwork", slug);
   if (current) permanentRedirect(`/artwork/${current}`);
   notFound();
 }
 
 export async function generateMetadata({ params }: PageProps<"/artwork/[slug]">): Promise<Metadata> {
-  const artwork = getArtwork((await params).slug);
+  const artwork = await getArtwork((await params).slug);
   if (!artwork) return {};
   return buildPageMetadata({
     title: artwork.title,
@@ -43,8 +44,8 @@ export async function generateMetadata({ params }: PageProps<"/artwork/[slug]">)
 }
 
 export default async function ArtworkPage({ params }: PageProps<"/artwork/[slug]">) {
-  const artwork = load((await params).slug);
-  const profile = getProfile();
+  const artwork = await load((await params).slug);
+  const profile = await getProfile();
   const { previous, next } = getSequenceNeighbours(artwork.sequence, `artwork:${artwork.slug}`);
   const ratio = artwork.image.src.width / artwork.image.src.height;
 
@@ -185,7 +186,7 @@ export default async function ArtworkPage({ params }: PageProps<"/artwork/[slug]
           </div>
         )}
       </article>
-      <ContactCTA />
+      <ContactCTA {...await getContactCta()} />
     </>
   );
 }

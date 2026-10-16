@@ -6,13 +6,13 @@ import { SocialLinks } from "@/components/layout/SocialLinks";
 import { SplitSection } from "@/components/layout/SplitSection";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { Prose } from "@/components/ui/Prose";
-import { getDisciplines, getImageCredits, getProfile } from "@/content";
+import { getContactCta, getDisciplines, getImageCredits, getProfile } from "@/content";
 import { Recognition } from "@/features/home/Recognition";
 import { hrefFor } from "@/lib/routes";
 import { buildPageMetadata } from "@/lib/seo";
 
-export function generateMetadata(): Metadata {
-  const profile = getProfile();
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
   return buildPageMetadata({
     title: `About ${profile.name}`,
     description: profile.shortBio || profile.headline,
@@ -21,11 +21,11 @@ export function generateMetadata(): Metadata {
   });
 }
 
-export default function AboutPage() {
-  const profile = getProfile();
-  const disciplines = getDisciplines();
+export default async function AboutPage() {
+  const profile = await getProfile();
+  const disciplines = await getDisciplines();
   const studio = profile.studioImages ?? [];
-  const credits = getImageCredits();
+  const credits = await getImageCredits();
 
   return (
     <>
@@ -149,7 +149,7 @@ export default function AboutPage() {
         </div>
       )}
 
-      <ContactCTA />
+      <ContactCTA {...await getContactCta()} />
     </>
   );
 }

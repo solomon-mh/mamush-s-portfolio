@@ -5,7 +5,7 @@ import { ContactCTA } from "@/components/layout/ContactCTA";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DisciplineSwitcher } from "@/components/navigation/DisciplineSwitcher";
 import { EmptyState } from "@/components/ui/States";
-import { getDisciplines, getProfile, getSettings, getWorkIndex } from "@/content";
+import { getContactCta, getDisciplines, getProfile, getSettings, getWorkIndex } from "@/content";
 import { filterByDiscipline } from "@/features/work/filter";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -18,10 +18,10 @@ export const metadata: Metadata = buildPageMetadata({
 /** The filter lives in the URL (?discipline=…) so filtered views can be shared. */
 export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const { discipline: rawFilter } = await searchParams;
-  const site = getSettings();
-  const profile = getProfile();
-  const disciplines = getDisciplines();
-  const all = getWorkIndex();
+  const site = await getSettings();
+  const profile = await getProfile();
+  const disciplines = await getDisciplines();
+  const all = await getWorkIndex();
   const requested = typeof rawFilter === "string" ? rawFilter : null;
   const active = disciplines.find((d) => d.slug === requested) ?? null;
   const shown = filterByDiscipline(all, active?.slug ?? null);
@@ -74,7 +74,7 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
           />
         )}
       </div>
-      <ContactCTA />
+      <ContactCTA {...await getContactCta()} />
     </>
   );
 }

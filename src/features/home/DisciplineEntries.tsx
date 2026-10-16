@@ -2,10 +2,10 @@ import { Play } from "lucide-react";
 import Link from "next/link";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import type { getDisciplines } from "@/content";
+import type { DisciplineSummary } from "@/content";
 import { hrefFor } from "@/lib/routes";
 
-type Discipline = ReturnType<typeof getDisciplines>[number];
+type Discipline = DisciplineSummary;
 
 /** Entry points to each discipline: consistent tiles, cropped around each cover's focal point. */
 export function DisciplineEntries({ disciplines }: { disciplines: Discipline[] }) {

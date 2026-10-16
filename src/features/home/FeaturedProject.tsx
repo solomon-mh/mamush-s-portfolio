@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { VideoPlayer } from "@/components/media/VideoPlayer";
-import type { getHome } from "@/content";
+import type { HomeData } from "@/content";
 import { primaryDiscipline } from "@/content/cards";
 import { hrefFor } from "@/lib/routes";
 import { joinParts } from "@/lib/utils";
 
-type Featured = NonNullable<ReturnType<typeof getHome>["featuredProject"]>;
+type Featured = NonNullable<HomeData["featuredProject"]>;
 
 /** One significant project on a dark ground — the homepage's cinematic moment. */
 export function FeaturedProject({ project }: { project: Featured }) {

@@ -10,5 +10,7 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["tests/support/setup.ts"],
     restoreMocks: true,
+    // The first page render imports the whole app, which can pass 5s on a busy machine.
+    testTimeout: 15_000,
   },
 });

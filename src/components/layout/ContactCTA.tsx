@@ -1,20 +1,14 @@
 import Link from "next/link";
 import { EmailButtons } from "@/components/ui/EmailButtons";
-import { getProfile, getSettings } from "@/content";
+import type { ContactCtaData } from "@/content";
 
 /**
  * A calm, consistent invitation near the end of each page. "Start a
  * conversation" opens the visitor's own email, addressed to the artist.
- * Copy comes from content/site.ts; fallbacks make no claims about the artist.
+ * Wording comes from Site settings (see getContactCta); fallbacks make no
+ * claims about the artist.
  */
-export function ContactCTA() {
-  const site = getSettings();
-  const profile = getProfile();
-  const cta = site.contactCta;
-  const heading = cta?.heading || "Have a project in mind?";
-  const text = cta?.text || "Commissions, collaborations and creative projects are welcome.";
-  const label = cta?.buttonLabel || "Start a conversation";
-
+export function ContactCTA({ heading, text, buttonLabel, email, artistName }: ContactCtaData) {
   return (
     <section aria-labelledby="contact-cta-heading" className="page-gutter mx-auto max-w-page pb-16 md:pb-24">
       <div className="grid gap-8 bg-paper-deep px-6 py-12 sm:px-10 md:grid-cols-12 md:items-center md:gap-8 md:px-14 md:py-16">
@@ -25,11 +19,11 @@ export function ContactCTA() {
           <p className="mt-4 max-w-[42ch] text-lede text-ink-soft">{text}</p>
         </div>
         <div className="flex flex-col items-start gap-4 md:col-span-5 md:items-end">
-          {profile.email ? (
+          {email ? (
             <>
-              <EmailButtons to={profile.email} artistName={profile.name} primaryLabel={label} className="md:justify-end" />
+              <EmailButtons to={email} artistName={artistName} primaryLabel={buttonLabel} className="md:justify-end" />
               <p className="text-small text-ink-soft">
-                Or write to <span className="select-all font-medium text-ink">{profile.email}</span>
+                Or write to <span className="select-all font-medium text-ink">{email}</span>
               </p>
             </>
           ) : (

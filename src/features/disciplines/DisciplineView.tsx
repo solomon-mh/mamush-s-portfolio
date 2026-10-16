@@ -5,11 +5,11 @@ import { VideoPlayer } from "@/components/media/VideoPlayer";
 import { DisciplineSwitcher } from "@/components/navigation/DisciplineSwitcher";
 import { Prose } from "@/components/ui/Prose";
 import { EmptyState } from "@/components/ui/States";
-import type { ArtworkCard, getDisciplinePage, ProjectCard } from "@/content";
+import type { ArtworkCard, DisciplinePageData, ProjectCard } from "@/content";
 import { cx } from "@/lib/utils";
 import { ProjectGrid, ProjectIndex, ScreeningList } from "./ProjectLists";
 
-type Discipline = NonNullable<ReturnType<typeof getDisciplinePage>>;
+type Discipline = DisciplinePageData;
 type SwitcherItem = { href: string; label: string; count?: number; active: boolean };
 
 /** Groups artworks by their series name, keeping order; unnamed works come first. */

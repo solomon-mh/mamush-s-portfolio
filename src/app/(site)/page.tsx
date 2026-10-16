@@ -1,6 +1,6 @@
 import { ContactCTA } from "@/components/layout/ContactCTA";
 import { JsonLd } from "@/components/ui/JsonLd";
-import { getDisciplines, getHome, getProfile, getSettings } from "@/content";
+import { getContactCta, getDisciplines, getHome, getProfile, getSettings } from "@/content";
 import { ArtistIntro } from "@/features/home/ArtistIntro";
 import { DisciplineEntries } from "@/features/home/DisciplineEntries";
 import { FeaturedProject } from "@/features/home/FeaturedProject";
@@ -10,11 +10,11 @@ import { SelectedWork } from "@/features/home/SelectedWork";
 import { enquiryDraft, mailtoHref } from "@/lib/email-links";
 import { personJsonLd, websiteJsonLd } from "@/lib/seo";
 
-export default function HomePage() {
-  const home = getHome();
-  const profile = getProfile();
-  const site = getSettings();
-  const disciplines = getDisciplines();
+export default async function HomePage() {
+  const home = await getHome();
+  const profile = await getProfile();
+  const site = await getSettings();
+  const disciplines = await getDisciplines();
 
   return (
     <>
@@ -35,7 +35,7 @@ export default function HomePage() {
       {home.featuredProject && <FeaturedProject project={home.featuredProject} />}
       <Recognition items={profile.recognition} />
       <div className="pt-16 md:pt-24">
-        <ContactCTA />
+        <ContactCTA {...await getContactCta()} />
       </div>
     </>
   );

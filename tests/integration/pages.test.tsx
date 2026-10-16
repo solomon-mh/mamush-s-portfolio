@@ -126,13 +126,13 @@ describe("discipline pages", () => {
     await expect(renderPage(load, { discipline: "old-discipline" })).rejects.toThrow("NEXT_REDIRECT:/work/fixture-discipline");
   });
 
-  it("only pre-generates public and former slugs", async () => {
-    const { generateStaticParams, dynamicParams } = (await load()) as unknown as {
-      generateStaticParams: () => { discipline: string }[];
-      dynamicParams: boolean;
+  it("pre-generates public and former slugs, and 404s on unknown ones", async () => {
+    const { generateStaticParams } = (await load()) as unknown as {
+      generateStaticParams: () => Promise<{ discipline: string }[]>;
     };
-    expect(dynamicParams).toBe(false); // anything else is a 404 at routing time
-    expect(generateStaticParams().map((p) => p.discipline)).toEqual(["painting", "illustration", "animation", "fixture-discipline", "old-discipline"]);
+    expect((await generateStaticParams()).map((p) => p.discipline)).toEqual(["painting", "illustration", "animation", "fixture-discipline", "old-discipline"]);
+    // Disciplines published later render on demand; anything unknown is a 404.
+    await expect(renderPage(load, { discipline: "hidden-discipline" })).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });
 
@@ -207,7 +207,7 @@ describe("metadata and sitemap", () => {
 
   it("generates a sitemap of public pages only", async () => {
     const { default: sitemap } = await import("@/app/sitemap");
-    const urls = sitemap().map((e) => e.url.replace(/^https?:\/\/[^/]+/, ""));
+    const urls = (await sitemap()).map((e) => e.url.replace(/^https?:\/\/[^/]+/, ""));
     expect(urls).toEqual(expect.arrayContaining(["/", "/work", "/work/fixture-discipline", "/projects/film", "/artwork/blue-hour"]));
     expect(urls.some((u) => /hidden/.test(u))).toBe(false);
   });

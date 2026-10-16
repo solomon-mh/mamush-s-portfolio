@@ -2,12 +2,18 @@
   "name": "artist-portfolio",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/migrate.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "migrate": "payload migrate",
+    "seed": "payload migrate && tsx --import ./scripts/register-image-hooks.mjs scripts/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
@@ -15,10 +21,17 @@
   "dependencies": {
     "@fontsource-variable/bodoni-moda": "^5.3.0",
     "@fontsource-variable/schibsted-grotesk": "^5.3.0",
+    "@payloadcms/db-postgres": "3.91.0",
+    "@payloadcms/next": "3.91.0",
+    "@payloadcms/storage-vercel-blob": "3.91.0",
+    "@payloadcms/ui": "3.91.0",
+    "graphql": "^16.14.2",
     "lucide-react": "^1.55.0",
     "next": "16.4.0",
+    "payload": "3.91.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "sharp": "^0.35.5",
     "zod": "^4.6.6"
   },
   "devDependencies": {
@@ -36,6 +49,7 @@
     "eslint-config-next": "16.4.0",
     "jsdom": "^30.1.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.3"
   },

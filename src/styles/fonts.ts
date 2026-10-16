@@ -1,7 +1,4 @@
-import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { publicEnv } from "@/lib/env";
-import "@/styles/globals.css";
 
 /*
  * Both families are SIL Open Font License variable fonts, installed from npm
@@ -29,21 +26,4 @@ const sans = localFont({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(publicEnv.siteUrl),
-};
-
-export const viewport: Viewport = {
-  themeColor: "#f7f5f0",
-  colorScheme: "light",
-};
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    // data-scroll-behavior: Next.js turns smooth scrolling off during page changes,
-    // so every navigation lands instantly at the top of the new page.
-    <html lang="en" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable}`}>
-      <body>{children}</body>
-    </html>
-  );
-}
+export const fontVariables = `${display.variable} ${sans.variable}`;

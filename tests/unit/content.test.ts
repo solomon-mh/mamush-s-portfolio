@@ -84,23 +84,23 @@ describe("content validation", () => {
   });
 });
 
-describe("derived page data", () => {
-  it("lists visible disciplines in order with counts that ignore hidden work", () => {
-    const list = getDisciplines();
+describe("derived page data", async () => {
+  it("lists visible disciplines in order with counts that ignore hidden work", async () => {
+    const list = (await getDisciplines());
     expect(list.map((d) => d.title)).toEqual(["Painting", "Illustration", "Animation", "Fixture Discipline"]);
     expect(list.find((d) => d.slug === "painting")?.workCount).toBe(2);
     expect(list.find((d) => d.slug === "illustration")?.workCount).toBe(2); // one project + one artwork
   });
 
-  it("keeps the curated homepage order and drops hidden picks", () => {
-    const home = getHome();
+  it("keeps the curated homepage order and drops hidden picks", async () => {
+    const home = (await getHome());
     expect(home.selectedWork.map((w) => w.slug)).toEqual(["commission", "blue-hour", "field-study", "character-sheet"]);
     expect(home.heroArtwork?.slug).toBe("blue-hour");
     expect(home.featuredProject?.slug).toBe("film");
   });
 
-  it("lists projects and standalone artworks, newest and featured first, without hidden ones", () => {
-    const slugs = getWorkIndex().map((w) => w.slug);
+  it("lists projects and standalone artworks, newest and featured first, without hidden ones", async () => {
+    const slugs = (await getWorkIndex()).map((w) => w.slug);
     expect(slugs[0]).toBe("film"); // featured
     expect(slugs).toEqual(expect.arrayContaining(["commission", "blue-hour", "field-study"]));
     expect(slugs).not.toContain("character-sheet"); // shown on its project page
@@ -109,34 +109,34 @@ describe("derived page data", () => {
     expect(slugs).not.toContain("in-hidden-discipline");
   });
 
-  it("builds discipline pages, including a renamed fourth discipline", () => {
-    expect(getDisciplinePage("fixture-discipline")?.projects.map((p) => p.slug)).toEqual(["commission"]);
-    expect(getDisciplinePage("painting")?.artworks.map((a) => a.slug)).toEqual(["blue-hour", "field-study"]);
-    expect(getDisciplinePage("hidden-discipline")).toBeNull();
+  it("builds discipline pages, including a renamed fourth discipline", async () => {
+    expect((await getDisciplinePage("fixture-discipline"))?.projects.map((p) => p.slug)).toEqual(["commission"]);
+    expect((await getDisciplinePage("painting"))?.artworks.map((a) => a.slug)).toEqual(["blue-hour", "field-study"]);
+    expect((await getDisciplinePage("hidden-discipline"))).toBeNull();
   });
 
-  it("builds project and artwork pages with related work and sequences", () => {
-    expect(getProject("commission")?.artworks.map((a) => a.slug)).toEqual(["character-sheet"]);
-    expect(getProject("hidden-project")).toBeNull();
-    const artwork = getArtwork("blue-hour");
+  it("builds project and artwork pages with related work and sequences", async () => {
+    expect((await getProject("commission"))?.artworks.map((a) => a.slug)).toEqual(["character-sheet"]);
+    expect((await getProject("hidden-project"))).toBeNull();
+    const artwork = (await getArtwork("blue-hour"));
     expect(artwork?.sequence.map((s) => s.slug)).toEqual(["blue-hour", "field-study"]);
     expect(artwork?.related.map((r) => r.slug)).toEqual(["field-study"]); // same series
   });
 
-  it("generates params for current and former slugs, and resolves redirects", () => {
-    expect(getStaticSlugs("project")).toEqual(
+  it("generates params for current and former slugs, and resolves redirects", async () => {
+    expect((await getStaticSlugs("project"))).toEqual(
       expect.arrayContaining([{ slug: "commission" }, { slug: "old-commission" }, { slug: "film" }]),
     );
-    expect(getStaticSlugs("project")).not.toContainEqual({ slug: "hidden-project" });
-    expect(findRedirect("project", "old-commission")).toBe("commission");
-    expect(findRedirect("discipline", "old-discipline")).toBe("fixture-discipline");
-    expect(findRedirect("artwork", "never-existed")).toBeNull();
+    expect((await getStaticSlugs("project"))).not.toContainEqual({ slug: "hidden-project" });
+    expect((await findRedirect("project", "old-commission"))).toBe("commission");
+    expect((await findRedirect("discipline", "old-discipline"))).toBe("fixture-discipline");
+    expect((await findRedirect("artwork", "never-existed"))).toBeNull();
   });
 
-  it("puts only public pages in the sitemap and credits list", () => {
-    const slugs = getSitemapEntries().map((e) => e.slug);
+  it("puts only public pages in the sitemap and credits list", async () => {
+    const slugs = (await getSitemapEntries()).map((e) => e.slug);
     expect(slugs).toEqual(expect.arrayContaining(["painting", "fixture-discipline", "film", "blue-hour"]));
     expect(slugs.some((s) => s.startsWith("hidden"))).toBe(false);
-    expect(getImageCredits()).toEqual([{ title: "Fixture Blue Hour", credit: "Fixture rights line", href: "/artwork/blue-hour" }]);
+    expect((await getImageCredits())).toEqual([{ title: "Fixture Blue Hour", credit: "Fixture rights line", href: "/artwork/blue-hour" }]);
   });
 });

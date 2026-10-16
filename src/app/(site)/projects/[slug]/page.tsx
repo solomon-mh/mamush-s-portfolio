@@ -10,7 +10,7 @@ import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { VideoPlayer } from "@/components/media/VideoPlayer";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Prose } from "@/components/ui/Prose";
-import { findRedirect, getProfile, getProject, getStaticSlugs } from "@/content";
+import { findRedirect, getContactCta, getProfile, getProject, getStaticSlugs } from "@/content";
 import { primaryDiscipline } from "@/content/cards";
 import { CreditList, ProjectMetadata } from "@/features/projects/ProjectMetadata";
 import { ProjectSections } from "@/features/projects/ProjectSections";
@@ -18,23 +18,24 @@ import { hrefFor } from "@/lib/routes";
 import { buildPageMetadata, creativeWorkJsonLd, videoJsonLd } from "@/lib/seo";
 import { durationToIso, parseVideoUrl } from "@/lib/video";
 
-/** Every page is generated at build time; any other slug is a 404. */
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getStaticSlugs("project");
+/*
+ * Pages are generated at build time. Works published later render on their
+ * first visit; unknown slugs are a 404.
+ */
+export async function generateStaticParams() {
+  return await getStaticSlugs("project");
 }
 
-function load(slug: string) {
-  const project = getProject(slug);
+async function load(slug: string) {
+  const project = await getProject(slug);
   if (project) return project;
-  const current = findRedirect("project", slug);
+  const current = await findRedirect("project", slug);
   if (current) permanentRedirect(`/projects/${current}`);
   notFound();
 }
 
 export async function generateMetadata({ params }: PageProps<"/projects/[slug]">): Promise<Metadata> {
-  const project = getProject((await params).slug);
+  const project = await getProject((await params).slug);
   if (!project) return {};
   return buildPageMetadata({
     title: project.title,
@@ -47,8 +48,8 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
 }
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[slug]">) {
-  const project = load((await params).slug);
-  const profile = getProfile();
+  const project = await load((await params).slug);
+  const profile = await getProfile();
 
   const discipline = primaryDiscipline(project.card);
   const heroVideo = project.hero && "video" in project.hero ? project.hero.video : null;
@@ -149,7 +150,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       </article>
 
       <div className="pt-16 md:pt-24">
-      <ContactCTA />
+      <ContactCTA {...await getContactCta()} />
       </div>
     </>
   );
