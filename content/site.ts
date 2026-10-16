@@ -62,8 +62,8 @@ I'm happy to work with art directors, agencies and studios on commissions of any
   ],
   portrait: {
     src: portrait,
-    alt: "Portrait of a man with dark curly hair and a beard, in a black velvet jacket and white shirt, hands clasped on a table in a dim, high-ceilinged hall",
-    caption: "Portrait — sample image: photograph by Vitaliy Shevchenko, Unsplash licence.",
+    alt: "Placeholder portrait: a plain grey silhouette of a head and shoulders",
+    caption: "Portrait placeholder — replace it with the artist's photo in the admin under Profile.",
   },
   experience: [],
   recognition: [],
