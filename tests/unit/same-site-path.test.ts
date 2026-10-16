@@ -10,9 +10,9 @@ describe("preview redirects", () => {
   });
 
   it("never leaves the site", () => {
-    for (const path of ["//evil.com", "/\\evil.com", "\\\\evil.com", "https://evil.com/x", "javascript:alert(1)"]) {
+    for (const path of ["//evil.com", "/\\evil.com", "\\\\evil.com", "https://evil.com/x", "javascript:alert(1)", "/.//evil.com", "/%2e//evil.com", "/a/..//evil.com"]) {
       expect(at(path)).not.toContain("evil.com");
-      expect(at(path).startsWith("/")).toBe(true);
+      expect(at(path)).toMatch(/^\/(?!\/)/); // one leading slash: never a protocol-relative URL
     }
   });
 });

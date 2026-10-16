@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { CollectionConfig } from "payload";
 import sharp from "sharp";
-import { anyone, signedIn } from "../access";
+import { filesOrSignedIn, signedIn } from "../access";
 import { revalidateAfterChange, revalidateAfterDelete } from "../hooks/revalidate";
 
 /** A tiny blurred version shown while the full image loads. */
@@ -25,7 +25,7 @@ export const Media: CollectionConfig = {
     defaultColumns: ["filename", "alt", "updatedAt"],
     description: "Images, short clips, captions and PDFs. Upload large originals — the site makes fast versions automatically.",
   },
-  access: { read: anyone, create: signedIn, update: signedIn, delete: signedIn },
+  access: { read: filesOrSignedIn, create: signedIn, update: signedIn, delete: signedIn },
   upload: {
     // Local fallback when Vercel Blob isn't configured (development).
     staticDir: path.resolve(process.cwd(), "media"),

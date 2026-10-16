@@ -6,4 +6,10 @@ import type { Access } from "payload";
  * them directly.
  */
 export const signedIn: Access = ({ req }) => Boolean(req.user);
-export const anyone: Access = () => true;
+
+/**
+ * Anyone may load a media file by its URL, but only signed-in users may list
+ * or query the library through the API, which would otherwise reveal uploads
+ * that belong to unpublished drafts.
+ */
+export const filesOrSignedIn: Access = ({ req, isReadingStaticFile }) => Boolean(req.user) || Boolean(isReadingStaticFile);
