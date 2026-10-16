@@ -6,7 +6,7 @@
  * own details. Only add biographical facts and credits the artist approves.
  */
 import type { ProfileContent, SiteContent } from "@/content/types";
-import portrait from "./images/studio/artist-portrait.jpg";
+import portrait from "./images/studio/artist-portrait.webp";
 
 export const site: SiteContent = {
   siteName: "Mamush",
