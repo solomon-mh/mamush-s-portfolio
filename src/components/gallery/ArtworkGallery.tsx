@@ -4,11 +4,20 @@ import { ArtworkImage } from "@/components/media/ArtworkImage";
 import type { ArtworkCard } from "@/content";
 import { altText } from "@/lib/images";
 import { hrefFor } from "@/lib/routes";
-import { cx } from "@/lib/utils";
+import { JustifiedRows } from "./JustifiedRows";
 import { Lightbox, LightboxTrigger, type LightboxItem } from "./Lightbox";
 import { WallLabel } from "./WallLabel";
 
-export type GalleryArrangement = "wall" | "masonry";
+/**
+ * "exhibition": larger works, at most two to a row (painting).
+ * "grid": denser rows for illustration, stills and project works.
+ */
+export type GalleryScale = "exhibition" | "grid";
+
+const SCALES: Record<GalleryScale, { rowHeight: number; maxRowHeight: number; maxPerRow: number; mobileMaxVh: 56 | 70 }> = {
+  exhibition: { rowHeight: 470, maxRowHeight: 600, maxPerRow: 2, mobileMaxVh: 70 },
+  grid: { rowHeight: 320, maxRowHeight: 440, maxPerRow: 4, mobileMaxVh: 56 },
+};
 
 export function toLightboxItems(artworks: ArtworkCard[]): LightboxItem[] {
   return artworks.map((a) => ({
@@ -22,92 +31,60 @@ export function toLightboxItems(artworks: ArtworkCard[]): LightboxItem[] {
   }));
 }
 
-/**
- * Artworks with an immersive viewer. "wall" hangs large works one by one,
- * alternating sides like a gallery wall (painting); "masonry" packs works
- * into columns at their natural proportions (illustration, stills).
- */
+/** Artworks in justified rows with an immersive full-screen viewer. */
 export function ArtworkGallery({
   artworks,
-  arrangement,
+  scale = "grid",
   label,
   headingLevel = "h3",
 }: {
   artworks: ArtworkCard[];
-  arrangement: GalleryArrangement;
+  scale?: GalleryScale;
   label: string;
   headingLevel?: "h2" | "h3";
 }) {
   if (artworks.length === 0) return null;
   const items = toLightboxItems(artworks);
+  const entries = artworks.map((artwork, index) => ({
+    key: artwork._id,
+    ratio: artwork.image.src.width / artwork.image.src.height,
+    artwork,
+    index,
+  }));
 
   return (
     <Lightbox items={items} label={label}>
-      <ul
-        role="list"
-        className={cx(
-          arrangement === "wall" && "flex flex-col gap-20 md:gap-32",
-          arrangement === "masonry" && "columns-1 gap-8 sm:columns-2 lg:columns-3",
-        )}
-      >
-        {artworks.map((artwork, index) => {
+      <JustifiedRows
+        items={entries}
+        {...SCALES[scale]}
+        renderItem={({ artwork, index }, sizes) => {
           const href = hrefFor("artwork", artwork.slug);
-          const landscape = artwork.image.src.width / artwork.image.src.height > 1.15;
           return (
-            <li
-              key={artwork._id}
-              className={cx(
-                arrangement === "masonry" && "mb-12 break-inside-avoid",
-                arrangement === "wall" && "md:grid md:grid-cols-12 md:gap-8",
-              )}
-            >
-              <div
-                className={cx(
-                  arrangement === "wall" &&
-                    (landscape
-                      ? index % 2 === 0
-                        ? "md:col-span-9"
-                        : "md:col-span-9 md:col-start-4"
-                      : index % 2 === 0
-                        ? "md:col-span-6 md:col-start-2"
-                        : "md:col-span-6 md:col-start-6"),
-                )}
-              >
-                <LightboxTrigger index={index} label={artwork.title}>
-                  <ViewTransition name={`work-artwork-${artwork.slug}`} share="morph" default="none">
-                    <ArtworkImage
-                      image={artwork.image}
-                      fallbackAlt={artwork.title}
-                      sizes={
-                        arrangement === "wall"
-                          ? landscape
-                            ? "(min-width: 1440px) 960px, (min-width: 768px) 72vw, 100vw"
-                            : "(min-width: 1440px) 640px, (min-width: 768px) 48vw, 100vw"
-                          : "(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
-                      }
+            <figure className="group">
+              <LightboxTrigger index={index} label={artwork.title}>
+                <ViewTransition name={`work-artwork-${artwork.slug}`} share="morph" default="none">
+                  <ArtworkImage image={artwork.image} fallbackAlt={artwork.title} sizes={sizes} className="card-media" />
+                </ViewTransition>
+              </LightboxTrigger>
+              <figcaption className="mt-3.5">
+                {href ? (
+                  <Link href={href} className="block">
+                    <WallLabel
+                      title={artwork.title}
+                      year={artwork.year}
+                      lines={[artwork.medium, artwork.dimensions]}
+                      as={headingLevel}
+                      size="sm"
                     />
-                  </ViewTransition>
-                </LightboxTrigger>
-                <div className="mt-3">
-                  {href ? (
-                    <Link href={href} className="hover:underline">
-                      <WallLabel
-                        title={artwork.title}
-                        year={artwork.year}
-                        lines={[artwork.medium, artwork.dimensions]}
-                        as={headingLevel}
-                        size="sm"
-                      />
-                    </Link>
-                  ) : (
-                    <WallLabel title={artwork.title} year={artwork.year} lines={[artwork.medium]} as={headingLevel} size="sm" />
-                  )}
-                </div>
-              </div>
-            </li>
+                  </Link>
+                ) : (
+                  <WallLabel title={artwork.title} year={artwork.year} lines={[artwork.medium]} as={headingLevel} size="sm" />
+                )}
+              </figcaption>
+            </figure>
           );
-        })}
-      </ul>
+        }}
+      />
     </Lightbox>
   );
 }

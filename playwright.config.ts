@@ -30,8 +30,6 @@ export default defineConfig({
     env: {
       NEXT_TELEMETRY_DISABLED: "1",
       NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
-      // Email is intentionally not configured: tests verify the form never pretends to send.
-      RESEND_API_KEY: "",
     },
     timeout: 600_000,
     reuseExistingServer: !process.env.CI,

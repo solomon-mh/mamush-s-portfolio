@@ -5,26 +5,31 @@ import { usePathname } from "next/navigation";
 import { isActivePath, mainNav } from "@/lib/routes";
 import { cx } from "@/lib/utils";
 
-/** Desktop navigation with clear active states (aria-current + underline). */
+/** Desktop navigation with clear active states (aria-current + accent underline). */
 export function PrimaryNav() {
   const pathname = usePathname() ?? "/";
   return (
     <ul className="hidden items-center gap-1 md:flex" role="list">
       {mainNav.map((item) => {
         const active = isActivePath(pathname, item.href);
-        const isContact = item.href === "/contact";
+        if (item.href === "/contact") {
+          return (
+            <li key={item.href} className="ml-3">
+              <Link href={item.href} aria-current={active ? "page" : undefined} className="btn btn-primary min-h-10 px-5">
+                {item.label}
+              </Link>
+            </li>
+          );
+        }
         return (
           <li key={item.href}>
             <Link
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "inline-flex min-h-11 items-center px-3 text-[0.9375rem] transition-colors",
-                isContact
-                  ? "ml-3 rounded-full border border-ink/80 px-5 hover:bg-ink hover:text-paper"
-                  : "underline-offset-[0.45em] hover:underline",
-                active && !isContact && "underline decoration-accent decoration-2",
-                active && isContact && "bg-ink text-paper",
+                "relative inline-flex min-h-11 items-center px-3 text-small transition-colors hover:text-ink",
+                "after:absolute after:inset-x-3 after:bottom-2.5 after:h-px after:origin-left after:bg-ink after:transition-transform after:duration-300",
+                active ? "text-ink after:scale-x-100" : "text-ink-soft after:scale-x-0 hover:after:scale-x-100",
               )}
             >
               {item.label}

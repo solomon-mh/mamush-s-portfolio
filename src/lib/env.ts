@@ -2,8 +2,7 @@ import { z } from "zod";
 
 /**
  * Public (browser-safe) configuration. NEXT_PUBLIC_* variables are inlined at
- * build time, so each must be referenced explicitly. Server-only secrets live
- * in `env.server.ts`.
+ * build time, so each must be referenced explicitly.
  */
 const publicSchema = z.object({
   siteUrl: z

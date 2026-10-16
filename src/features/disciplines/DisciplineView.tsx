@@ -1,7 +1,8 @@
-import Link from "next/link";
-import { ArtworkGallery, type GalleryArrangement } from "@/components/gallery/ArtworkGallery";
+import { ArtworkGallery } from "@/components/gallery/ArtworkGallery";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { VideoPlayer } from "@/components/media/VideoPlayer";
+import { DisciplineSwitcher } from "@/components/navigation/DisciplineSwitcher";
 import { Prose } from "@/components/ui/Prose";
 import { EmptyState } from "@/components/ui/States";
 import type { ArtworkCard, getDisciplinePage, ProjectCard } from "@/content";
@@ -9,6 +10,7 @@ import { cx } from "@/lib/utils";
 import { ProjectGrid, ProjectIndex, ScreeningList } from "./ProjectLists";
 
 type Discipline = NonNullable<ReturnType<typeof getDisciplinePage>>;
+type SwitcherItem = { href: string; label: string; count?: number; active: boolean };
 
 /** Groups artworks by their series name, keeping order; unnamed works come first. */
 export function groupBySeries(artworks: ArtworkCard[]): { series: string | null; artworks: ArtworkCard[] }[] {
@@ -29,32 +31,23 @@ function slugify(text: string) {
     .replace(/^-|-$/g, "");
 }
 
-export function DisciplineView({ discipline }: { discipline: Discipline }) {
+export function DisciplineView({ discipline, switcher }: { discipline: Discipline; switcher: SwitcherItem[] }) {
   const { layout, title, projects, artworks } = discipline;
   const isEmpty = projects.length === 0 && artworks.length === 0 && !discipline.showreel;
   const night = layout === "screening";
+  const intro = discipline.introduction ? (
+    <Prose text={discipline.introduction} />
+  ) : (
+    discipline.shortDescription
+  );
 
   return (
     <div data-surface={night ? "night" : undefined} className={cx(night && "bg-ink text-paper")}>
-      <div className="page-gutter mx-auto max-w-page pb-24 pt-10 md:pb-36 md:pt-16">
-        <header className="mb-16 grid gap-8 md:mb-24 md:grid-cols-12">
-          <nav aria-label="Breadcrumb" className="md:col-span-12">
-            <Link href="/work" className={cx("link-quiet inline-flex min-h-11 items-center text-label", night ? "text-paper/70" : "text-graphite")}>
-              All work
-            </Link>
-          </nav>
-          <h1 className="font-display text-display md:col-span-7">{title}</h1>
-          <div className="md:col-span-5 md:pt-3">
-            {discipline.introduction ? (
-              <Prose text={discipline.introduction} className={cx("text-lede", night ? "text-paper/85" : "text-graphite")} />
-            ) : (
-              discipline.shortDescription && (
-                <p className={cx("max-w-prose text-lede", night ? "text-paper/85" : "text-graphite")}>{discipline.shortDescription}</p>
-              )
-            )}
-          </div>
-        </header>
+      <PageHeader title={title} intro={intro} breadcrumb={[{ href: "/work", label: "Work" }]} tone={night ? "night" : "paper"}>
+        <DisciplineSwitcher items={switcher} label="Disciplines" tone={night ? "night" : "paper"} />
+      </PageHeader>
 
+      <div className="page-gutter mx-auto max-w-page pb-20 md:pb-28">
         {isEmpty ? (
           <EmptyState title={`New ${title.toLowerCase()} work is on its way`} action={{ href: "/work", label: "Browse all work" }}>
             <p>Nothing has been published in this discipline yet.</p>
@@ -65,6 +58,21 @@ export function DisciplineView({ discipline }: { discipline: Discipline }) {
           <StandardLayout layout={layout} title={title} projects={projects} artworks={artworks} />
         )}
       </div>
+    </div>
+  );
+}
+
+function SectionTitle({ id, children, count, className }: { id?: string; children: string; count?: number; className?: string }) {
+  return (
+    <div className={cx("mb-8 flex items-baseline justify-between gap-4 border-t border-current/15 pt-5 md:mb-10", className)}>
+      <h2 id={id} className="font-display text-title">
+        {children}
+      </h2>
+      {count !== undefined && (
+        <span className="text-label opacity-60">
+          {count} {count === 1 ? "work" : "works"}
+        </span>
+      )}
     </div>
   );
 }
@@ -82,40 +90,50 @@ function StandardLayout({
 }) {
   const groups = groupBySeries(artworks);
   const named = groups.filter((g) => g.series);
-  const arrangement: GalleryArrangement = layout === "gallery" ? "wall" : "masonry";
+  const scale = layout === "gallery" ? "exhibition" : "grid";
   const projectsFirst = layout === "index";
 
   const projectSection = projects.length > 0 && (
-    <section aria-labelledby="projects-heading" className="mb-24 md:mb-36">
-      <h2 id="projects-heading" className="mb-10 font-display text-title">
+    <section aria-labelledby="projects-heading" className="mb-20 md:mb-28">
+      <SectionTitle id="projects-heading" count={projects.length}>
         Projects
-      </h2>
+      </SectionTitle>
       {layout === "index" ? <ProjectIndex projects={projects} /> : <ProjectGrid projects={projects} />}
     </section>
   );
 
   const artworkSection = artworks.length > 0 && (
-    <section aria-label={`${title} artworks`} className="mb-24 md:mb-36">
+    <section aria-label={`${title} artworks`} className="mb-20 md:mb-28">
       {named.length > 1 && (
-        <nav aria-label="Series" className="mb-12 flex flex-wrap gap-x-6 gap-y-1 border-y border-rule py-3">
+        <nav aria-label="Series" className="mb-12 flex flex-wrap items-center gap-2">
+          <span className="mr-2 text-label text-graphite">Jump to</span>
           {named.map((g) => (
-            <a key={g.series} href={`#series-${slugify(g.series!)}`} className="link-quiet inline-flex min-h-11 items-center">
+            <a key={g.series} href={`#series-${slugify(g.series!)}`} className="chip">
               {g.series}
+              <span className="chip-count">{g.artworks.length}</span>
             </a>
           ))}
         </nav>
       )}
-      <div className="flex flex-col gap-24 md:gap-36">
+      <div className="flex flex-col gap-20 md:gap-28">
         {groups.map((group) => (
-          <div key={group.series ?? "_"} id={group.series ? `series-${slugify(group.series)}` : undefined} className="scroll-mt-8">
-            {group.series && <h2 className="mb-10 font-display text-title italic">{group.series}</h2>}
+          <section
+            key={group.series ?? "_"}
+            id={group.series ? `series-${slugify(group.series)}` : undefined}
+            aria-label={group.series ?? `${title}`}
+          >
+            {group.series ? (
+              <SectionTitle count={group.artworks.length}>{group.series}</SectionTitle>
+            ) : (
+              named.length > 0 && <SectionTitle count={group.artworks.length}>Individual works</SectionTitle>
+            )}
             <ArtworkGallery
               artworks={group.artworks}
-              arrangement={arrangement}
+              scale={scale}
               label={group.series ? `${group.series} viewer` : `${title} viewer`}
-              headingLevel={group.series ? "h3" : "h2"}
+              headingLevel={group.series || named.length > 0 ? "h3" : "h2"}
             />
-          </div>
+          </section>
         ))}
       </div>
     </section>
@@ -147,7 +165,7 @@ function ScreeningLayout({
   return (
     <>
       {reel && (
-        <section aria-labelledby="showreel-heading" className="mb-24 md:mb-36">
+        <section aria-labelledby="showreel-heading" className="mb-20 md:mb-28">
           <h2 id="showreel-heading" className="sr-only">
             Showreel
           </h2>
@@ -159,20 +177,20 @@ function ScreeningLayout({
         </section>
       )}
       {projects.length > 0 && (
-        <section aria-labelledby="films-heading" className="mb-24 md:mb-36">
-          <h2 id="films-heading" className="mb-10 font-display text-title">
+        <section aria-labelledby="films-heading" className="mb-20 md:mb-28">
+          <SectionTitle id="films-heading" count={projects.length}>
             Films and projects
-          </h2>
+          </SectionTitle>
           <ScreeningList projects={projects} />
         </section>
       )}
       {artworks.length > 0 && (
         <section aria-labelledby="stills-heading">
-          <h2 id="stills-heading" className="mb-10 font-display text-title">
-            Stills, frames and studies
-          </h2>
-          <div className="[&_.text-graphite]:text-paper/70 [&_.text-ink]:text-paper">
-            <ArtworkGallery artworks={artworks} arrangement="masonry" label="Stills viewer" />
+          <SectionTitle id="stills-heading" count={artworks.length}>
+            Stills and frames
+          </SectionTitle>
+          <div className="[&_.text-graphite]:text-paper/65 [&_.text-ink]:text-paper">
+            <ArtworkGallery artworks={artworks} scale="grid" label="Stills viewer" />
           </div>
         </section>
       )}

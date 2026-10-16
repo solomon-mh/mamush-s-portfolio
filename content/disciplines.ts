@@ -9,8 +9,8 @@
 import type { DisciplineContent } from "@/content/types";
 import bunny from "./images/animation/big-buck-bunny.jpg";
 import great from "./images/illustration/great-wave.jpg";
-import llamigosCover from "./images/animation/llamigos-cover.jpg";
-import grandillama from "./images/animation/gran-dillama-cover.jpg";
+import llamigosNight from "./images/animation/llamigos-night.jpg";
+import mishima from "./images/illustration/mishima-morning-mist.jpg";
 import waterLily from "./images/painting/water-lily-pond.jpg";
 
 export const disciplines: DisciplineContent[] = [
@@ -39,7 +39,7 @@ export const disciplines: DisciplineContent[] = [
     order: 30,
     shortDescription: "Short films and animated sequences, from storyboard to final frame.",
     introduction: "Character-led short films and commissioned sequences. Each project begins as a sketchbook full of storyboards and colour keys.",
-    cover: { src: llamigosCover, alt: "Title card for Caminandes: Llamigos — a wide-eyed llama and a small penguin clutching red berries ride a mine cart", focus: { x: 0.35, y: 0.5 } },
+    cover: { src: llamigosNight, alt: "A llama lies in the snow beside a small penguin and a pile of red berries, with a colony of penguins behind", focus: { x: 0.32, y: 0.55 } },
     // Sample showreel: Big Buck Bunny (2008), Blender Foundation, CC BY 3.0.
     showreel: {
       title: "Showreel",
@@ -54,6 +54,6 @@ export const disciplines: DisciplineContent[] = [
     layout: "index",
     order: 40,
     shortDescription: "Longer collaborations and personal projects that cross disciplines.",
-    cover: { src: grandillama, alt: "An orange llama pokes its head through a wire fence beside the title Caminandes, with snowy mountains behind", focus: { x: 0.5, y: 0.4 } },
+    cover: { src: mishima, alt: "Travellers on foot and horseback pass through a village half-hidden in grey morning mist, with tall trees fading behind", focus: { x: 0.38, y: 0.55 } },
   },
 ];

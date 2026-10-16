@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ContactCTA } from "@/components/layout/ContactCTA";
-import { findRedirect, getDisciplinePage, getProfile, getSettings, getStaticSlugs } from "@/content";
+import { findRedirect, getDisciplinePage, getDisciplines, getStaticSlugs } from "@/content";
 import { DisciplineView } from "@/features/disciplines/DisciplineView";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -34,12 +34,20 @@ export async function generateMetadata({ params }: PageProps<"/work/[discipline]
 
 export default async function DisciplinePage({ params }: PageProps<"/work/[discipline]">) {
   const discipline = load((await params).discipline);
-  const site = getSettings();
-  const profile = getProfile();
   return (
     <>
-      <DisciplineView discipline={discipline} />
-      <ContactCTA cta={site.contactCta} email={profile.email} />
+      <DisciplineView
+        discipline={discipline}
+        switcher={getDisciplines().map((d) => ({
+          href: `/work/${d.slug}`,
+          label: d.title,
+          count: d.workCount,
+          active: d.slug === discipline.slug,
+        }))}
+      />
+      <div className="pt-16 md:pt-24">
+        <ContactCTA />
+      </div>
     </>
   );
 }

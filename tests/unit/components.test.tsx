@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => (
@@ -20,7 +20,6 @@ import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { VideoPlayer } from "@/components/media/VideoPlayer";
 import { MobileNavigation } from "@/components/navigation/MobileNavigation";
 import { PrimaryNav } from "@/components/navigation/PrimaryNav";
-import { ContactForm } from "@/features/contact/ContactForm";
 import { img } from "../fixtures/content";
 
 /** jsdom serialises `aspect-ratio: 0.8` as "0.8 / 1". */
@@ -32,104 +31,6 @@ const ratioOf = (el: HTMLElement) => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-});
-
-describe("ContactForm", () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-  });
-  afterEach(() => vi.useRealTimers());
-
-  const setup = () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<ContactForm enquiryTypes={["Commission", "Collaboration"]} budgetRanges={[]} fallbackEmail="studio@example.com" />);
-    return user;
-  };
-
-  async function fillValid(user: ReturnType<typeof userEvent.setup>) {
-    await user.type(screen.getByLabelText("Your name"), "Ada Client");
-    await user.type(screen.getByLabelText("Email"), "ada@agency.example");
-    await user.selectOptions(screen.getByLabelText("What is this about?"), "Commission");
-    await user.type(screen.getByLabelText("Tell me about the project"), "A series of editorial illustrations for spring.");
-    await user.click(screen.getByRole("checkbox"));
-  }
-
-  it("validates in the browser, links errors to fields and focuses the first problem", async () => {
-    const fetchSpy = vi.fn();
-    vi.stubGlobal("fetch", fetchSpy);
-    const user = setup();
-    await user.click(screen.getByRole("button", { name: "Send message" }));
-
-    const name = screen.getByLabelText("Your name");
-    expect(name).toHaveAttribute("aria-invalid", "true");
-    expect(name).toHaveAccessibleDescription("Please enter your name.");
-    expect(name).toHaveFocus();
-    expect(screen.getByRole("alert")).toHaveTextContent("Some details need attention");
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it("submits once, shows progress, then confirms delivery", async () => {
-    let resolve!: (r: Response) => void;
-    const fetchSpy = vi.fn(() => new Promise<Response>((r) => (resolve = r)));
-    vi.stubGlobal("fetch", fetchSpy);
-    const user = setup();
-    vi.advanceTimersByTime(5_000); // a person takes a few seconds to fill the form
-    await fillValid(user);
-
-    await user.click(screen.getByRole("button", { name: "Send message" }));
-    const sending = screen.getByRole("button", { name: "Sending…" });
-    expect(sending).toBeDisabled();
-    await user.click(sending); // double click is ignored
-    expect(fetchSpy).toHaveBeenCalledOnce();
-
-    const body = JSON.parse((fetchSpy.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
-    expect(body).toMatchObject({ name: "Ada Client", consent: true, website: "" });
-
-    await act(async () => resolve(new Response(JSON.stringify({ ok: true }), { status: 200 })));
-    const heading = await screen.findByRole("heading", { name: /your message has been sent/ });
-    expect(heading).toHaveFocus();
-  });
-
-  it("reports a delivery failure honestly and offers the direct email address", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ ok: false, code: "delivery_failed", message: "Your message couldn't be sent." }), { status: 502 }),
-      ),
-    );
-    const user = setup();
-    await fillValid(user);
-    await user.click(screen.getByRole("button", { name: "Send message" }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("Your message couldn't be sent.");
-    expect(within(alert).getByRole("link", { name: "studio@example.com" })).toHaveAttribute("href", "mailto:studio@example.com");
-    expect(screen.queryByText(/has been sent/)).not.toBeInTheDocument();
-  });
-
-  it("shows server-side field errors next to the field", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({ ok: false, code: "invalid", message: "Please check the highlighted fields.", fieldErrors: { enquiryType: "Please choose one of the listed options." } }),
-          { status: 400 },
-        ),
-      ),
-    );
-    const user = setup();
-    await fillValid(user);
-    await user.click(screen.getByRole("button", { name: "Send message" }));
-    expect(await screen.findByText("Please choose one of the listed options.")).toBeInTheDocument();
-    expect(screen.getByLabelText("What is this about?")).toHaveAttribute("aria-invalid", "true");
-  });
-
-  it("hides the spam trap from assistive technology and the tab order", () => {
-    setup();
-    const trap = document.querySelector('input[name="website"]')!;
-    expect(trap).toHaveAttribute("tabindex", "-1");
-    expect(trap.closest('[aria-hidden="true"]')).not.toBeNull();
-  });
 });
 
 describe("navigation", () => {

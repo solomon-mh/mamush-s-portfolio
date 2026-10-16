@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Prose } from "@/components/ui/Prose";
 import { getProfile, getSettings } from "@/content";
 import { buildPageMetadata } from "@/lib/seo";
@@ -14,19 +15,20 @@ export default function PrivacyPage() {
   const profile = getProfile();
 
   return (
-    <div className="page-gutter mx-auto max-w-page pb-24 pt-10 md:pt-16">
-      <h1 className="font-display text-display">Privacy</h1>
-      <div className="mt-12 md:ml-[calc(100%/12*4)]">
+    <>
+      <PageHeader title="Privacy" intro="How this website handles personal information." />
+      <div className="page-gutter mx-auto max-w-page pb-24">
+      <div className="border-t border-rule pt-10 md:ml-[calc(100%/12*4)]">
         {policy ? (
           <Prose text={policy} />
         ) : (
           // Factual description of what this website does. Replace it with `privacyPolicy` in content/site.ts.
           <div className="prose-editorial">
-            <h2>Contact form</h2>
+            <h2>Contacting the studio</h2>
             <p>
-              When you send a message through the contact form, your name, email address, the details you enter and
-              the time of sending are delivered by email to the studio inbox through an email delivery provider. They
-              are used only to reply to your enquiry. This website does not store enquiries in a database.
+              This website has no contact form. The contact buttons open your own email app or Gmail with a message
+              addressed to the studio; nothing is sent until you press send there, and this website doesn&apos;t
+              collect or store your details. Emails you send are used only to reply to you.
             </p>
             <h2>Cookies and analytics</h2>
             <p>
@@ -55,5 +57,6 @@ export default function PrivacyPage() {
         )}
       </div>
     </div>
+    </>
   );
 }

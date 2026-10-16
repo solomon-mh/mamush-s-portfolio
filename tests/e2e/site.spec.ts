@@ -78,11 +78,22 @@ test.describe("navigation", () => {
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   });
 
+  test("every page opens at the top, even after clicking a link far down", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator('section[aria-labelledby="selected-work"] a[href^="/"]').last();
+    await card.scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(300);
+    await card.click();
+    await page.waitForURL((url) => url.pathname !== "/");
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  });
+
   test("work filters are shareable URLs", async ({ page }) => {
     await page.goto("/work");
     const filters = page.getByRole("navigation", { name: "Filter by discipline" });
     const filter = filters.locator('a[href^="/work?discipline="]').first();
-    const name = (await filter.textContent())!.trim();
+    // The pill shows "Label count"; the label is its first text node.
+    const name = (await filter.evaluate((el) => el.firstChild?.textContent ?? ""))!.trim();
     await filter.click();
     await expect(page).toHaveURL(/\/work\?discipline=/);
     await expect(filter).toHaveAttribute("aria-current", "page");
@@ -176,27 +187,19 @@ test.describe("performance safeguards", () => {
 });
 
 test.describe("contact", () => {
-  test("validates in the browser with accessible errors", async ({ page }) => {
+  test("contact opens the visitor's email, with no form to fill in", async ({ page }) => {
     await page.goto("/contact");
-    await page.getByRole("button", { name: "Send message" }).click();
-    const name = page.getByLabel("Your name");
-    await expect(name).toHaveAttribute("aria-invalid", "true");
-    await expect(name).toBeFocused();
-    await expect(page.getByText("Please enter your name.")).toBeVisible();
+    await expect(page.locator("form")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Write an email" })).toHaveAttribute("href", /^mailto:[^?]+\?subject=/);
+    await expect(page.getByRole("link", { name: /^Open in Gmail/ }).first()).toHaveAttribute("href", /^https:\/\/mail\.google\.com\/mail\/\?view=cm/);
   });
 
-  test("never pretends to send when email delivery isn't configured", async ({ page }) => {
-    await page.goto("/contact");
-    await page.waitForTimeout(3_200); // people take a few seconds; instant submissions are treated as spam
-    await page.getByLabel("Your name").fill("Ada Client");
-    await page.getByLabel("Email").fill("ada@agency.example");
-    await page.getByLabel("What is this about?").selectOption({ index: 1 });
-    await page.getByLabel("Tell me about the project").fill("A series of editorial illustrations for a spring campaign.");
-    await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Send message" }).click();
-    // (Next.js also renders an empty route announcer with role="alert".)
-    await expect(page.getByRole("alert").filter({ hasText: "isn't accepting messages right now" })).toBeVisible();
-    await expect(page.getByText(/has been sent/)).toHaveCount(0);
+  test("every 'Start a conversation' button opens an email", async ({ page }) => {
+    for (const path of ["/", "/work", "/about"]) {
+      await page.goto(path);
+      const cta = page.locator('section[aria-labelledby="contact-cta-heading"] a.btn').first();
+      await expect(cta, path).toHaveAttribute("href", /^mailto:/);
+    }
   });
 });
 

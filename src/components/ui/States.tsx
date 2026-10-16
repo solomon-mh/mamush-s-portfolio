@@ -66,7 +66,7 @@ export function ErrorState({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex min-h-12 items-center rounded-full bg-ink px-7 text-paper hover:bg-accent"
+            className="btn btn-primary"
           >
             Try again
           </button>

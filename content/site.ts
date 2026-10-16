@@ -35,7 +35,6 @@ export const site: SiteContent = {
     buttonLabel: "Start a conversation",
   },
   enquiryTypes: ["Commission", "Editorial illustration", "Animation", "Collaboration", "Exhibition or sale", "Something else"],
-  budgetRanges: ["Under €1,000", "€1,000–5,000", "€5,000–15,000", "Over €15,000"],
   footerLinks: [{ label: "Image credits", href: "/about#credits" }],
 };
 
@@ -55,7 +54,7 @@ Painting lets me hold that moment still. Animation lets me release it.`,
   approach: `Projects usually start with a conversation and a set of loose sketches. From there I share colour studies and a short written direction before moving to final artwork, so there are no surprises.
 
 I'm happy to work with art directors, agencies and studios on commissions of any scale, from a single editorial illustration to a full animated sequence.`,
-  email: "hello@example.com",
+  email: "mamush@gmail.com",
   socialLinks: [
     { platform: "instagram", url: "https://www.instagram.com/" },
     { platform: "vimeo", url: "https://vimeo.com/" },

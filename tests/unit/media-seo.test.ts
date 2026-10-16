@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { arrangeSalon, orientationOf } from "@/components/gallery/SalonHang";
-import type { ArtworkCard } from "@/content";
+import { buildRows } from "@/components/gallery/JustifiedRows";
 import { altText, imageDimensions, objectPosition } from "@/lib/images";
 import { absoluteUrl, buildPageMetadata, creativeWorkJsonLd, serializeJsonLd, videoJsonLd } from "@/lib/seo";
 import { img } from "../fixtures/content";
@@ -23,32 +22,25 @@ describe("images", () => {
   });
 });
 
-describe("salon hang arrangement", () => {
-  const work = (id: string, w: number, h: number): ArtworkCard => ({
-    _id: id,
-    _type: "artwork",
-    title: id,
-    slug: id,
-    year: null,
-    medium: null,
-    dimensions: null,
-    series: null,
-    featured: false,
-    image: img(id, w, h),
-    discipline: null,
+describe("justified gallery rows", () => {
+  const item = (key: string, ratio: number) => ({ key, ratio });
+
+  it("keeps order and groups works so each row approaches the target height", () => {
+    // Target 3.2 ≈ a 1280px row at 400px tall.
+    const rows = buildRows([item("a", 1.5), item("b", 0.8), item("c", 1), item("d", 1.5), item("e", 1.5)], 3.2, 3);
+    expect(rows.map((r) => r.items.map((i) => i.key))).toEqual([["a", "b", "c"], ["d", "e"]]);
+    expect(rows[0].ratioSum).toBeCloseTo(3.3);
   });
 
-  it("classifies works by their real proportions", () => {
-    expect(orientationOf(work("a", 2400, 1600))).toBe("landscape");
-    expect(orientationOf(work("b", 1600, 2000))).toBe("portrait");
-    expect(orientationOf(work("c", 1800, 1800))).toBe("square");
+  it("never puts more than the maximum in a row", () => {
+    const rows = buildRows(Array.from({ length: 6 }, (_, i) => item(String(i), 0.5)), 10, 2);
+    expect(rows.every((r) => r.items.length <= 2)).toBe(true);
+    expect(rows).toHaveLength(3);
   });
 
-  it("gives landscapes their own row and pairs upright works, preserving order", () => {
-    const rows = arrangeSalon([work("l1", 3, 2), work("p1", 4, 5), work("p2", 4, 5), work("p3", 4, 5)]);
-    expect(rows.map((r) => r.map((p) => p.item._id))).toEqual([["l1"], ["p1", "p2"], ["p3"]]);
-    // Every placement offers a responsive sizes hint, so small screens never get desktop files.
-    expect(rows.flat().every((p) => p.sizes.includes("100vw"))).toBe(true);
+  it("gives a very wide work a row of its own", () => {
+    const rows = buildRows([item("pano", 3.5), item("p", 0.8), item("q", 0.8)], 3.2, 3);
+    expect(rows[0].items.map((i) => i.key)).toEqual(["pano"]);
   });
 });
 

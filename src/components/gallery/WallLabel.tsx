@@ -22,9 +22,9 @@ export function WallLabel({ title, year, lines = [], as: Title = "h3", size = "m
     <div className={cx("max-w-prose", className)}>
       <Title
         className={cx(
-          "font-display italic leading-tight text-ink",
+          "font-display italic leading-snug text-ink decoration-1 underline-offset-[0.18em] group-hover:underline",
           size === "sm" && "text-[1.0625rem]",
-          size === "md" && "text-[1.25rem]",
+          size === "md" && "text-[1.1875rem]",
           size === "lg" && "text-title",
         )}
       >
@@ -32,7 +32,7 @@ export function WallLabel({ title, year, lines = [], as: Title = "h3", size = "m
         {year ? <span className="font-sans not-italic text-graphite">, {year}</span> : null}
       </Title>
       {visibleLines.length > 0 && (
-        <p className="mt-1 text-label text-graphite">
+        <p className="mt-1 text-label leading-relaxed text-graphite">
           {visibleLines.map((line, i) => (
             <span key={`${line}-${i}`} className="block">
               {line}

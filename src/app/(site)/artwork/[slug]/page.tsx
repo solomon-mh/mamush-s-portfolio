@@ -7,9 +7,10 @@ import { Lightbox, LightboxTrigger } from "@/components/gallery/Lightbox";
 import { RelatedWork } from "@/components/gallery/RelatedWork";
 import { ContactCTA } from "@/components/layout/ContactCTA";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
+import { EmailButtons } from "@/components/ui/EmailButtons";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { paragraphs, Prose } from "@/components/ui/Prose";
-import { findRedirect, getArtwork, getProfile, getSettings, getStaticSlugs } from "@/content";
+import { findRedirect, getArtwork, getProfile, getStaticSlugs } from "@/content";
 import { getSequenceNeighbours } from "@/features/artwork/sequence";
 import { hrefFor } from "@/lib/routes";
 import { buildPageMetadata, creativeWorkJsonLd } from "@/lib/seo";
@@ -43,7 +44,6 @@ export async function generateMetadata({ params }: PageProps<"/artwork/[slug]">)
 
 export default async function ArtworkPage({ params }: PageProps<"/artwork/[slug]">) {
   const artwork = load((await params).slug);
-  const site = getSettings();
   const profile = getProfile();
   const { previous, next } = getSequenceNeighbours(artwork.sequence, `artwork:${artwork.slug}`);
   const ratio = artwork.image.src.width / artwork.image.src.height;
@@ -62,105 +62,130 @@ export default async function ArtworkPage({ params }: PageProps<"/artwork/[slug]
           medium: artwork.medium,
         })}
       />
-      <article className="pb-10 pt-6 md:pt-10">
-        {/* The work first, as large as the screen allows, never cropped. */}
-        <div className="page-gutter mx-auto max-w-page">
-          <div className="mx-auto" style={{ width: `min(100%, calc(84svh * ${ratio.toFixed(4)}))` }}>
-            <Lightbox items={toLightboxItems([artwork.card])} label={`${artwork.title}, full screen`}>
-              <LightboxTrigger index={0} label={artwork.title}>
-                <ViewTransition name={`work-artwork-${artwork.slug}`} share="morph" default="none">
-                  <ArtworkImage image={artwork.image} fallbackAlt={artwork.title} priority quality={85} sizes="(min-width: 1440px) 1280px, 100vw" />
-                </ViewTransition>
-              </LightboxTrigger>
-            </Lightbox>
-          </div>
-        </div>
-
-        <div className="page-gutter mx-auto mt-10 grid max-w-page gap-12 md:mt-16 md:grid-cols-12 md:gap-8">
-          <header className="md:col-span-4">
-            <h1 className="font-display text-title italic">
-              {artwork.title}
-              {artwork.year ? <span className="font-sans not-italic text-graphite">, {artwork.year}</span> : null}
-            </h1>
-            <dl className="mt-4 flex flex-col gap-1 text-graphite">
-              {artwork.medium && (
-                <div>
-                  <dt className="sr-only">Medium</dt>
-                  <dd>{artwork.medium}</dd>
-                </div>
-              )}
-              {artwork.dimensions && (
-                <div>
-                  <dt className="sr-only">Dimensions</dt>
-                  <dd>{artwork.dimensions}</dd>
-                </div>
-              )}
-              {artwork.series && (
-                <div>
-                  <dt className="sr-only">Series</dt>
-                  <dd>From the series {artwork.series}</dd>
-                </div>
-              )}
-              {artwork.rights && (
-                <div>
-                  <dt className="sr-only">Credits and rights</dt>
-                  <dd className="text-label">{artwork.rights}</dd>
-                </div>
-              )}
-            </dl>
-            <ul role="list" className="mt-6 flex flex-col">
-              {artwork.discipline && (
-                <li>
-                  <Link href={hrefFor("discipline", artwork.discipline.slug)!} className="link-quiet inline-flex min-h-11 items-center">
-                    More {artwork.discipline.title.toLowerCase()}
-                  </Link>
-                </li>
-              )}
-              {artwork.project && (
-                <li>
-                  <Link href={hrefFor("project", artwork.project.slug)!} className="link-quiet inline-flex min-h-11 items-center">
-                    Part of the project {artwork.project.title}
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </header>
-          <div className="md:col-span-7 md:col-start-6">
-            {artwork.image.caption && <p className="mb-6 text-graphite">{artwork.image.caption}</p>}
-            <Prose text={artwork.description} className="text-lede" />
-          </div>
-        </div>
-
-        {(previous || next) && (
-          <nav aria-label="More artworks" className="page-gutter mx-auto mt-20 max-w-page">
-            <ul role="list" className="grid grid-cols-2 gap-8 border-t border-rule pt-6">
+      <article className="page-gutter mx-auto max-w-page pb-16 pt-6 md:pb-24 md:pt-8">
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex flex-wrap items-center gap-x-2 text-label text-graphite">
+            <li className="flex items-center gap-2 after:opacity-50 after:content-['/']">
+              <Link href="/work" className="link-quiet inline-flex min-h-8 items-center">
+                Work
+              </Link>
+            </li>
+            {artwork.discipline && (
               <li>
-                {previous && (
-                  <Link href={hrefFor("artwork", previous.slug)!} rel="prev" className="group inline-flex min-h-11 flex-col">
-                    <span className="text-label text-graphite">Previous</span>
-                    <span className="font-display italic group-hover:underline">{previous.title}</span>
-                  </Link>
-                )}
+                <Link href={hrefFor("discipline", artwork.discipline.slug)!} className="link-quiet inline-flex min-h-8 items-center">
+                  {artwork.discipline.title}
+                </Link>
               </li>
-              <li className="text-right">
-                {next && (
-                  <Link href={hrefFor("artwork", next.slug)!} rel="next" className="group inline-flex min-h-11 flex-col items-end">
-                    <span className="text-label text-graphite">Next</span>
-                    <span className="font-display italic group-hover:underline">{next.title}</span>
-                  </Link>
+            )}
+          </ol>
+        </nav>
+
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+          {/* The work first, as large as the screen allows, never cropped. */}
+          <div className="flex items-center justify-center bg-paper-deep p-5 sm:p-10 lg:col-span-8 lg:min-h-[calc(100svh-var(--header-height)-6rem)] lg:p-14">
+            <div className="w-full" style={{ maxWidth: `min(100%, calc((100svh - var(--header-height) - 13rem) * ${ratio.toFixed(4)}))` }}>
+              <Lightbox items={toLightboxItems([artwork.card])} label={`${artwork.title}, full screen`}>
+                <LightboxTrigger index={0} label={artwork.title}>
+                  <ViewTransition name={`work-artwork-${artwork.slug}`} share="morph" default="none">
+                    <ArtworkImage
+                      image={artwork.image}
+                      fallbackAlt={artwork.title}
+                      priority
+                      quality={85}
+                      className="shadow-[0_18px_40px_-24px_rgba(24,24,26,0.45)]"
+                      sizes="(min-width: 1440px) 820px, (min-width: 1024px) 60vw, 100vw"
+                    />
+                  </ViewTransition>
+                </LightboxTrigger>
+              </Lightbox>
+              <p className="mt-3 text-center text-label text-graphite">Select the image to view it full screen.</p>
+            </div>
+          </div>
+
+          <aside aria-labelledby="artwork-title" className="lg:col-span-4">
+            <div className="lg:sticky lg:top-[calc(var(--header-height)+2rem)]">
+              <h1 id="artwork-title" className="font-display text-title italic text-balance">
+                {artwork.title}
+              </h1>
+              {artwork.year && <p className="mt-1 text-lede text-graphite">{artwork.year}</p>}
+
+              <dl className="mt-8 divide-y divide-rule border-y border-rule">
+                {[
+                  ["Medium", artwork.medium],
+                  ["Dimensions", artwork.dimensions],
+                  ["Series", artwork.series],
+                ]
+                  .filter((row): row is [string, string] => Boolean(row[1]))
+                  .map(([term, value]) => (
+                    <div key={term} className="grid grid-cols-[7rem_1fr] gap-4 py-3">
+                      <dt className="text-label text-graphite">{term}</dt>
+                      <dd className="text-small">{value}</dd>
+                    </div>
+                  ))}
+                {artwork.project && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-4 py-3">
+                    <dt className="text-label text-graphite">Project</dt>
+                    <dd className="text-small">
+                      <Link href={hrefFor("project", artwork.project.slug)!} className="link-quiet">
+                        {artwork.project.title}
+                      </Link>
+                    </dd>
+                  </div>
                 )}
-              </li>
-            </ul>
-          </nav>
-        )}
+              </dl>
+
+              {artwork.image.caption && <p className="mt-6 text-graphite">{artwork.image.caption}</p>}
+              <Prose text={artwork.description} className="mt-6 text-ink-soft" />
+              {artwork.rights && <p className="mt-6 text-label text-graphite">{artwork.rights}</p>}
+
+              {profile.email && (
+                <EmailButtons
+                  to={profile.email}
+                  artistName={profile.name}
+                  subject={`Enquiry about “${artwork.title}”`}
+                  primaryLabel="Enquire about this work"
+                  className="mt-8"
+                />
+              )}
+              {artwork.discipline && (
+                <Link href={hrefFor("discipline", artwork.discipline.slug)!} className="link-quiet mt-5 inline-flex min-h-11 items-center text-small">
+                  More {artwork.discipline.title.toLowerCase()}
+                </Link>
+              )}
+
+              {(previous || next) && (
+                <nav aria-label="More artworks" className="mt-10">
+                  <ul role="list" className="grid grid-cols-2 gap-6 border-t border-rule pt-5">
+                    <li>
+                      {previous && (
+                        <Link href={hrefFor("artwork", previous.slug)!} rel="prev" className="group inline-flex min-h-11 flex-col">
+                          <span className="text-label text-graphite">Previous</span>
+                          <span className="font-display italic leading-snug decoration-1 underline-offset-[0.18em] group-hover:underline">{previous.title}</span>
+                        </Link>
+                      )}
+                    </li>
+                    <li className="text-right">
+                      {next && (
+                        <Link href={hrefFor("artwork", next.slug)!} rel="next" className="group inline-flex min-h-11 flex-col items-end">
+                          <span className="text-label text-graphite">Next</span>
+                          <span className="font-display italic leading-snug decoration-1 underline-offset-[0.18em] group-hover:underline">{next.title}</span>
+                        </Link>
+                      )}
+                    </li>
+                  </ul>
+                </nav>
+              )}
+            </div>
+          </aside>
+        </div>
 
         {artwork.related.length > 0 && (
-          <div className="page-gutter mx-auto mt-24 max-w-page">
+          <div className="mt-20 md:mt-28">
             <RelatedWork title={artwork.series ? `More from ${artwork.series}` : "Related works"} items={artwork.related} />
           </div>
         )}
       </article>
-      <ContactCTA cta={site.contactCta} email={profile.email} />
+      <ContactCTA />
     </>
   );
 }

@@ -7,24 +7,36 @@ import { FeaturedProject } from "@/features/home/FeaturedProject";
 import { HomeHero } from "@/features/home/HomeHero";
 import { Recognition } from "@/features/home/Recognition";
 import { SelectedWork } from "@/features/home/SelectedWork";
+import { enquiryDraft, mailtoHref } from "@/lib/email-links";
 import { personJsonLd, websiteJsonLd } from "@/lib/seo";
 
 export default function HomePage() {
   const home = getHome();
   const profile = getProfile();
   const site = getSettings();
+  const disciplines = getDisciplines();
 
   return (
     <>
       <JsonLd data={personJsonLd(profile)} />
       <JsonLd data={websiteJsonLd(site.siteName)} />
-      <HomeHero name={profile.name} headline={profile.headline} artwork={home.heroArtwork} loopUrl={home.heroLoop} />
+      <HomeHero
+        name={profile.name}
+        headline={profile.headline}
+        availability={site.announcement}
+        availabilityHref={profile.email ? mailtoHref(profile.email, enquiryDraft(profile.name, "Commission")) : null}
+        artwork={home.heroArtwork}
+        loopUrl={home.heroLoop}
+        disciplines={disciplines}
+      />
       <SelectedWork items={home.selectedWork} />
-      <DisciplineEntries disciplines={getDisciplines()} />
+      <DisciplineEntries disciplines={disciplines} />
+      <ArtistIntro name={profile.name} shortBio={profile.shortBio} statement={profile.statement} portrait={profile.portrait} />
       {home.featuredProject && <FeaturedProject project={home.featuredProject} />}
-      <ArtistIntro name={profile.name} shortBio={profile.shortBio} portrait={profile.portrait} />
       <Recognition items={profile.recognition} />
-      <ContactCTA cta={site.contactCta} email={profile.email} />
+      <div className="pt-16 md:pt-24">
+        <ContactCTA />
+      </div>
     </>
   );
 }

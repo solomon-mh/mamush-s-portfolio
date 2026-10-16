@@ -40,7 +40,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    // data-scroll-behavior: Next.js turns smooth scrolling off during page changes,
+    // so every navigation lands instantly at the top of the new page.
+    <html lang="en" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable}`}>
       <body>{children}</body>
     </html>
   );

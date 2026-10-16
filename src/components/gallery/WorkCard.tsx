@@ -49,7 +49,7 @@ export function WorkCard({
       sizes={sizes}
       priority={priority}
       aspectRatio={aspectRatio}
-      imgClassName="transition-transform duration-700 ease-gallery group-hover:scale-[1.015] motion-reduce:transform-none"
+      className="card-media"
     />
   );
 
@@ -62,7 +62,7 @@ export function WorkCard({
       ) : (
         image
       )}
-      <WallLabel title={title} year={item.year} lines={lines} as={headingLevel} className="mt-3" />
+      <WallLabel title={title} year={item.year} lines={lines} as={headingLevel} className="mt-3.5" />
     </>
   );
 

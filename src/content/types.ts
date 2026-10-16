@@ -159,7 +159,7 @@ export interface SiteContent {
   /** Replaces the default privacy notice. Paragraphs separated by a blank line. */
   privacyPolicy?: string;
   contactCta?: { heading?: string; text?: string; buttonLabel?: string };
+  /** Topics offered on the contact page; each opens an email with that subject. */
   enquiryTypes?: string[];
-  budgetRanges?: string[];
   defaultShareImage?: ArtImage;
 }

@@ -3,22 +3,27 @@
 /*
  * Design tokens.
  * Colours are kept deliberately quiet so the artwork supplies the energy.
- * The accent can be overridden from the CMS (Site settings → Accent colour),
- * which sets --accent on <html> at runtime.
+ * The accent can be changed in content/site.ts (accentColor), which sets
+ * --accent on the page at runtime.
  */
 :root {
   --paper: #f7f5f0;
-  --ink: #191919;
-  --graphite: #686868;
-  --rule: #e4e0d8;
+  --paper-raised: #fbfaf7;
+  --paper-deep: #eeeae2;
+  --ink: #18181a;
+  --ink-soft: #2c2b2e;
+  --graphite: #66645f;
+  --rule: #e2ddd3;
   --accent: #2b3a9e;
-  --paper-deep: #efebe3;
+  --header-height: 4.25rem;
 }
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
   --color-paper-deep: var(--paper-deep);
   --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-graphite: var(--graphite);
   --color-rule: var(--rule);
   --color-accent: var(--accent);
@@ -26,22 +31,24 @@
   --font-display: var(--font-bodoni), "Bodoni 72", "Didot", Georgia, serif;
   --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
 
-  /* Type scale: a 1.25 ratio for text, opening up to display sizes for headings. */
+  /* Type scale (≈1.25 ratio for text, opening up for headings). */
   --text-label: 0.8125rem;
-  --text-label--line-height: 1.35;
+  --text-label--line-height: 1.4;
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.55;
   --text-body: 1.0625rem;
-  --text-body--line-height: 1.6;
-  --text-lede: clamp(1.25rem, 1.05rem + 0.7vw, 1.6rem);
-  --text-lede--line-height: 1.4;
-  --text-title: clamp(1.75rem, 1.3rem + 1.6vw, 2.75rem);
-  --text-title--line-height: 1.08;
-  --text-display: clamp(2.75rem, 1.6rem + 5vw, 6.5rem);
-  --text-display--line-height: 0.95;
-  --text-monument: clamp(3.5rem, 1.2rem + 10vw, 11.5rem);
-  --text-monument--line-height: 0.86;
+  --text-body--line-height: 1.65;
+  --text-lede: clamp(1.1875rem, 1.05rem + 0.45vw, 1.4375rem);
+  --text-lede--line-height: 1.45;
+  --text-title: clamp(1.625rem, 1.3rem + 1vw, 2.375rem);
+  --text-title--line-height: 1.1;
+  --text-display: clamp(2.5rem, 1.55rem + 3.2vw, 4.75rem);
+  --text-display--line-height: 1;
+  --text-monument: clamp(3.75rem, 1.9rem + 6.6vw, 8.75rem);
+  --text-monument--line-height: 0.9;
 
   --container-page: 90rem;
-  --container-prose: 38rem;
+  --container-prose: 36rem;
 
   --ease-gallery: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -50,6 +57,7 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
   }
 
   body {
@@ -57,9 +65,21 @@
     color: var(--ink);
     font-family: var(--font-sans);
     font-size: var(--text-body);
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Bodoni Moda's display cut has extremely fine hairlines. Headings use a
+   * mid optical size so they stay crisp at every size; only the hero name
+   * uses the most dramatic cut (see .type-hero).
+   */
+  .font-display {
+    font-optical-sizing: none;
+    font-variation-settings: "opsz" 28;
+    font-weight: 450;
+    letter-spacing: -0.012em;
   }
 
   ::selection {
@@ -71,7 +91,7 @@
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
-    border-radius: 1px;
+    border-radius: 2px;
   }
 
   [data-surface="night"] :focus-visible {
@@ -91,21 +111,150 @@
   }
   @media (width >= 40rem) {
     .page-gutter {
-      padding-inline: 1.5rem;
+      padding-inline: 2rem;
     }
   }
-  @media (width >= 48rem) {
+  @media (width >= 64rem) {
     .page-gutter {
-      padding-inline: 3rem;
+      padding-inline: 3.5rem;
     }
   }
-  @media (width >= 80rem) {
+  @media (width >= 90rem) {
     .page-gutter {
       padding-inline: 5rem;
     }
   }
 
-  /* Underline that draws in on hover; always visible for keyboard focus. */
+  /* Consistent vertical rhythm between page sections. */
+  .section-space {
+    padding-block: 4rem;
+  }
+  @media (width >= 48rem) {
+    .section-space {
+      padding-block: 6rem;
+    }
+  }
+
+  /* The artist's name on the homepage — the one place the hairline cut is used. */
+  .type-hero {
+    font-family: var(--font-display);
+    font-size: var(--text-monument);
+    line-height: var(--text-monument--line-height);
+    font-optical-sizing: none;
+    font-variation-settings: "opsz" 96;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+  }
+
+  /* A short line of supporting context above a heading, in sentence case. */
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--text-label);
+    line-height: 1.4;
+    color: var(--graphite);
+  }
+  .kicker::before {
+    content: "";
+    width: 1.5rem;
+    height: 1px;
+    background: currentColor;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding-inline: 1.5rem;
+    font-size: var(--text-small);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      background-color 200ms var(--ease-gallery),
+      color 200ms var(--ease-gallery),
+      border-color 200ms var(--ease-gallery),
+      transform 200ms var(--ease-gallery);
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+  .btn:active {
+    transform: translateY(0);
+  }
+  /* Ink button: lifts and softens slightly on hover. */
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary:hover {
+    background: #3a3834;
+    box-shadow: 0 10px 22px -14px rgba(24, 24, 26, 0.7);
+  }
+  /* Outline button: fills with ink on hover. */
+  .btn-secondary {
+    border: 1px solid color-mix(in oklab, var(--ink) 30%, transparent);
+    color: var(--ink);
+  }
+  .btn-secondary:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  [data-surface="night"] .btn-secondary {
+    border-color: color-mix(in oklab, var(--paper) 35%, transparent);
+    color: var(--paper);
+  }
+  [data-surface="night"] .btn-secondary:hover {
+    background: var(--paper);
+    border-color: var(--paper);
+    color: var(--ink);
+  }
+  /* Paper button for dark backgrounds. */
+  .btn-light {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .btn-light:hover {
+    background: #ffffff;
+    box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Filter and switcher pills */
+  .chip {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    padding-inline: 1rem;
+    font-size: var(--text-small);
+    transition:
+      background-color 200ms var(--ease-gallery),
+      border-color 200ms var(--ease-gallery),
+      color 200ms var(--ease-gallery);
+  }
+  .chip:hover {
+    border-color: color-mix(in oklab, var(--ink) 45%, transparent);
+    background: var(--paper-deep);
+  }
+  .chip[aria-current="page"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .chip-count {
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+
+  /* Underline that strengthens on hover; always visible for keyboard focus. */
   .link-quiet {
     text-decoration-line: underline;
     text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
@@ -118,6 +267,14 @@
     text-decoration-color: currentColor;
   }
 
+  /* Image that gently lifts when its card is hovered. */
+  .card-media img {
+    transition: transform 900ms var(--ease-gallery);
+  }
+  .group:hover .card-media img {
+    transform: scale(1.025);
+  }
+
   /* Rich text set in the editorial voice. */
   .prose-editorial {
     max-width: var(--container-prose);
@@ -127,52 +284,39 @@
   }
   .prose-editorial h2 {
     font-family: var(--font-display);
-    font-size: var(--text-title);
-    line-height: var(--text-title--line-height);
-    margin-top: 1.6em;
+    font-variation-settings: "opsz" 28;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-top: 2em;
   }
-  .prose-editorial h3 {
-    font-weight: 600;
-    margin-top: 1.4em;
+  .prose-editorial h2:first-child {
+    margin-top: 0;
   }
   .prose-editorial a {
     text-decoration-line: underline;
     text-underline-offset: 0.2em;
   }
-  .prose-editorial ul {
-    list-style: disc;
-    padding-left: 1.25em;
-  }
-  .prose-editorial ol {
-    list-style: decimal;
-    padding-left: 1.25em;
-  }
-  .prose-editorial blockquote {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: var(--text-lede);
-    line-height: var(--text-lede--line-height);
-    border-left: 1px solid var(--rule);
-    padding-left: 1.25rem;
-  }
 }
 
-/*
- * Gallery reveal: images fade in once decoded. Purely presentational —
- * content is never hidden from assistive tech or when JS is unavailable.
- */
 @media (prefers-reduced-motion: no-preference) {
-  /* The one orchestrated moment: the name rises into place on first load. */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* The one orchestrated moment: the hero settles into place on first load. */
   .hero-rise {
-    animation: hero-rise 1100ms var(--ease-gallery) both;
+    animation: hero-rise 1000ms var(--ease-gallery) both;
   }
   .hero-fade {
-    animation: media-fade 900ms var(--ease-gallery) 350ms both;
+    animation: hero-rise 1000ms var(--ease-gallery) 180ms both;
+  }
+  .hero-fade-late {
+    animation: media-fade 1200ms var(--ease-gallery) 320ms both;
   }
   @keyframes hero-rise {
     from {
       opacity: 0;
-      transform: translateY(0.18em);
+      transform: translateY(0.75rem);
     }
     to {
       opacity: 1;
@@ -187,7 +331,7 @@
   }
 
   .media-fade {
-    animation: media-fade 700ms var(--ease-gallery) both;
+    animation: media-fade 600ms var(--ease-gallery) both;
   }
   @keyframes media-fade {
     from {

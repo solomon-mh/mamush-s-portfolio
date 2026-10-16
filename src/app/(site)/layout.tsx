@@ -32,7 +32,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       >
         Skip to content
       </a>
-      <SiteHeader siteName={site.siteName} announcement={site.announcement} disciplines={disciplines} />
+      <SiteHeader siteName={site.siteName} disciplines={disciplines} />
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         {children}
       </main>

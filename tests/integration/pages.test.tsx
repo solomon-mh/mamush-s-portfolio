@@ -89,7 +89,8 @@ describe("work index", () => {
       "Fixture Field Study, 2024",
       "Fixture Blue Hour, 2023",
     ]);
-    expect(screen.getByRole("link", { name: "Painting" })).toHaveAttribute("aria-current", "page");
+    const filters = screen.getByRole("navigation", { name: "Filter by discipline" });
+    expect(within(filters).getByRole("link", { name: /^Painting/ })).toHaveAttribute("aria-current", "page");
   });
 
   it("ignores an unknown filter and shows everything", async () => {
@@ -152,7 +153,8 @@ describe("project and artwork pages", () => {
 
   it("renders an artwork with its label, credits, sequence and structured data", async () => {
     await renderPage(artwork, { slug: "blue-hour" });
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Fixture Blue Hour, 2023");
+    expect(screen.getByRole("heading", { level: 1, name: "Fixture Blue Hour" })).toBeInTheDocument();
+    expect(screen.getByText("2023")).toBeInTheDocument();
     expect(screen.getByText("Oil on linen")).toBeInTheDocument();
     expect(screen.getByText("Fixture rights line")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Next/ })).toHaveAttribute("href", "/artwork/field-study");
@@ -164,6 +166,30 @@ describe("project and artwork pages", () => {
     await expect(renderPage(project, { slug: "hidden-project" })).rejects.toThrow("NEXT_NOT_FOUND");
     await expect(renderPage(project, { slug: "old-commission" })).rejects.toThrow("NEXT_REDIRECT:/projects/commission");
     await expect(renderPage(artwork, { slug: "old-blue-hour" })).rejects.toThrow("NEXT_REDIRECT:/artwork/blue-hour");
+  });
+});
+
+describe("contact by email", () => {
+  it("offers email-app and Gmail links addressed to the artist, with topic shortcuts", async () => {
+    await renderPage(() => import("@/app/(site)/contact/page"));
+    expect(document.querySelector("form")).toBeNull(); // no contact form
+    const write = screen.getByRole("link", { name: "Write an email" });
+    expect(write.getAttribute("href")).toMatch(/^mailto:studio@example\.com\?subject=Project%20enquiry/);
+    expect(screen.getAllByRole("link", { name: /^Open in Gmail/ })[0].getAttribute("href")).toContain("https://mail.google.com/mail/?view=cm");
+    const commission = screen.getByRole("link", { name: /Email app for a commission enquiry/ });
+    expect(commission.getAttribute("href")).toContain("subject=Commission%20enquiry");
+  });
+
+  it("makes every 'Start a conversation' button open an email", async () => {
+    await renderPage(() => import("@/app/(site)/about/page"));
+    const start = screen.getByRole("link", { name: "Write to the studio" }); // fixture's CTA label
+    expect(start.getAttribute("href")).toMatch(/^mailto:studio@example\.com/);
+  });
+
+  it("lets visitors enquire about a specific artwork by email", async () => {
+    await renderPage(() => import("@/app/(site)/artwork/[slug]/page"), { slug: "blue-hour" });
+    const enquire = screen.getByRole("link", { name: "Enquire about this work" });
+    expect(decodeURIComponent(enquire.getAttribute("href")!)).toContain("Enquiry about “Fixture Blue Hour”");
   });
 });
 

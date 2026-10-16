@@ -285,12 +285,7 @@ export function getImageCredits() {
     .map((a) => ({ title: a.title, credit: a.rights!, href: `/artwork/${a.slug}` }));
 }
 
-export function getEnquiryOptions() {
-  const site = getSettings();
-  const clean = (list?: string[]) => [...new Set((list ?? []).map((s) => s.trim()).filter(Boolean))];
-  return {
-    enquiryTypes: clean(site.enquiryTypes),
-    budgetRanges: clean(site.budgetRanges),
-    ctaText: site.contactCta?.text ?? null,
-  };
+/** Topics offered as quick-start emails on the contact page. */
+export function getEnquiryTopics(): string[] {
+  return [...new Set((getSettings().enquiryTypes ?? []).map((s) => s.trim()).filter(Boolean))];
 }

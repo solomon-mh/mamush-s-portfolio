@@ -4,7 +4,7 @@ Everything on the site comes from the files in [`content/`](../content). To publ
 
 | File | What it holds |
 | --- | --- |
-| `content/site.ts` | Your name, biography, statement, contact email, social links, homepage picks, contact form options |
+| `content/site.ts` | Your name, biography, statement, contact email, social links, homepage picks, contact topics |
 | `content/disciplines.ts` | Painting, Illustration, Animation and the fourth discipline: names, order, page layout |
 | `content/artworks.ts` | Single works, each with its own page |
 | `content/projects.ts` | Projects told as a story: brief, approach, process images, video, credits |
@@ -129,7 +129,7 @@ Also in `content/site.ts`, under `profile`: name, headline, biographies, stateme
 
 **Recognition** (clients, exhibitions, publications, awards, collaborators) is shown only when filled in. Only list things you're happy to make public.
 
-Contact form choices are `enquiryTypes` and `budgetRanges` in `site`.
+All contact buttons open the visitor's own email (their email app, or Gmail) addressed to `email` in `profile` — there is no form. `enquiryTypes` in `site` lists the topics shown on the contact page; each opens an email with that subject. `contactCta` sets the wording of the "Have a project in mind?" band.
 
 To offer a CV, put the PDF in `public/` (e.g. `public/cv.pdf`) and set `resume: "/cv.pdf"`.
 

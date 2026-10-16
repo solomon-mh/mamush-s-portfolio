@@ -160,7 +160,6 @@ const site = z.object({
   privacyPolicy: z.string().optional(),
   contactCta: z.object({ heading: z.string().optional(), text: z.string().optional(), buttonLabel: z.string().optional() }).optional(),
   enquiryTypes: z.array(z.string()).optional(),
-  budgetRanges: z.array(z.string()).optional(),
   defaultShareImage: image.optional(),
 });
 

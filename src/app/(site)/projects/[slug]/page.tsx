@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ViewTransition } from "react";
 import { ArtworkGallery } from "@/components/gallery/ArtworkGallery";
 import { RelatedWork } from "@/components/gallery/RelatedWork";
 import { ContactCTA } from "@/components/layout/ContactCTA";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SplitSection } from "@/components/layout/SplitSection";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
 import { VideoPlayer } from "@/components/media/VideoPlayer";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Prose } from "@/components/ui/Prose";
-import { findRedirect, getProfile, getProject, getSettings, getStaticSlugs } from "@/content";
+import { findRedirect, getProfile, getProject, getStaticSlugs } from "@/content";
 import { primaryDiscipline } from "@/content/cards";
 import { CreditList, ProjectMetadata } from "@/features/projects/ProjectMetadata";
 import { ProjectSections } from "@/features/projects/ProjectSections";
@@ -47,7 +48,6 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[slug]">) {
   const project = load((await params).slug);
-  const site = getSettings();
   const profile = getProfile();
 
   const discipline = primaryDiscipline(project.card);
@@ -81,91 +81,76 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
         />
       )}
 
-      <article className="page-gutter mx-auto max-w-page pb-10 pt-10 md:pt-16">
-        <header className="mb-12 grid gap-8 md:mb-16 lg:grid-cols-12">
-          <nav aria-label="Breadcrumb" className="lg:col-span-12">
-            <ol className="flex flex-wrap gap-x-2 text-label text-graphite">
-              <li>
-                <Link href="/work" className="link-quiet inline-flex min-h-11 items-center">
-                  Work
-                </Link>
-              </li>
-              {discipline && (
-                <li className="before:mr-2 before:content-['/']">
-                  <Link href={hrefFor("discipline", discipline.slug)!} className="link-quiet inline-flex min-h-11 items-center">
-                    {discipline.title}
-                  </Link>
-                </li>
-              )}
-            </ol>
-          </nav>
-          <div className="lg:col-span-8">
-            <h1 className="font-display text-display text-balance">{project.title}</h1>
-            {project.summary && <p className="mt-6 max-w-[48ch] text-lede text-graphite">{project.summary}</p>}
-          </div>
-          <div className="lg:col-span-3 lg:col-start-10 lg:pt-4">
-            <ProjectMetadata
-              client={project.client}
-              year={project.year}
-              role={project.role}
-              duration={project.duration}
-              disciplines={project.card.disciplines}
-            />
-          </div>
-        </header>
+      <article>
+        <PageHeader
+          title={project.title}
+          intro={project.summary}
+          breadcrumb={[{ href: "/work", label: "Work" }, ...(discipline ? [{ href: hrefFor("discipline", discipline.slug)!, label: discipline.title }] : [])]}
+        >
+          <ProjectMetadata
+            client={project.client}
+            year={project.year}
+            role={project.role}
+            duration={project.duration}
+            disciplines={project.card.disciplines}
+          />
+        </PageHeader>
 
-        <div className="mb-24 md:mb-36">
-          {heroVideo ? (
-            <VideoPlayer
-              video={heroVideo}
-              poster={<ArtworkImage image={heroVideo.poster} fallbackAlt="" aspectRatio={16 / 9} priority sizes="(min-width: 1440px) 1280px, 100vw" />}
-            />
-          ) : (
-            <ViewTransition name={`work-project-${project.slug}`} share="morph" default="none">
-              <ArtworkImage image={heroImage} fallbackAlt={project.title} priority sizes="(min-width: 1440px) 1280px, 100vw" />
-            </ViewTransition>
-          )}
-        </div>
+        <div className="page-gutter mx-auto max-w-page">
+          <div className="mb-16 md:mb-24">
+            {heroVideo ? (
+              <VideoPlayer
+                video={heroVideo}
+                poster={<ArtworkImage image={heroVideo.poster} fallbackAlt="" aspectRatio={16 / 9} priority sizes="(min-width: 1440px) 1280px, 100vw" />}
+              />
+            ) : (
+              <div className="flex justify-center bg-paper-deep p-6 sm:p-10 lg:p-14">
+                <div className="w-full" style={{ maxWidth: `min(100%, calc(72svh * ${(heroImage.src.width / heroImage.src.height).toFixed(4)}))` }}>
+                  <ViewTransition name={`work-project-${project.slug}`} share="morph" default="none">
+                    <ArtworkImage image={heroImage} fallbackAlt={project.title} priority sizes="(min-width: 1440px) 1100px, 100vw" />
+                  </ViewTransition>
+                </div>
+              </div>
+            )}
+          </div>
 
-        {(project.brief || project.approach) && (
-          <div className="mb-24 grid gap-16 md:mb-36 md:grid-cols-2 md:gap-8">
+          <div className="flex flex-col gap-16 md:gap-24">
             {project.brief && (
-              <section aria-labelledby="brief-heading">
-                <h2 id="brief-heading" className="mb-5 font-display text-title">
-                  The brief
-                </h2>
-                <Prose text={project.brief} />
-              </section>
+              <SplitSection id="brief-heading" title="The brief">
+                <Prose text={project.brief} className="text-lede text-ink-soft" />
+              </SplitSection>
             )}
             {project.approach && (
-              <section aria-labelledby="approach-heading">
-                <h2 id="approach-heading" className="mb-5 font-display text-title">
-                  Approach
+              <SplitSection id="approach-heading" title="Approach">
+                <Prose text={project.approach} className="text-lede text-ink-soft" />
+              </SplitSection>
+            )}
+
+            <ProjectSections sections={project.sections} projectTitle={project.title} />
+
+            {project.artworks.length > 0 && (
+              <section aria-labelledby="project-works">
+                <h2 id="project-works" className="mb-8 border-t border-rule pt-8 font-display text-title md:pt-10">
+                  Works from this project
                 </h2>
-                <Prose text={project.approach} />
+                <ArtworkGallery artworks={project.artworks} scale="grid" label={`${project.title} works viewer`} />
               </section>
             )}
+
+            {Boolean(project.credits?.length || project.collaborators?.length || project.deliverables?.length) && (
+              <SplitSection id="credits-heading" title="Credits">
+                <CreditList credits={project.credits} collaborators={project.collaborators} deliverables={project.deliverables} />
+              </SplitSection>
+            )}
+
+            <RelatedWork title="More projects" items={project.related} />
           </div>
-        )}
-
-        <ProjectSections sections={project.sections} projectTitle={project.title} />
-
-        {project.artworks.length > 0 && (
-          <section aria-labelledby="project-works" className="mt-24 md:mt-36">
-            <h2 id="project-works" className="mb-10 font-display text-title">
-              Works from this project
-            </h2>
-            <ArtworkGallery artworks={project.artworks} arrangement="masonry" label={`${project.title} works viewer`} />
-          </section>
-        )}
-
-        <div className="mt-24 flex flex-col gap-24 md:mt-36">
-          <CreditList credits={project.credits} collaborators={project.collaborators} deliverables={project.deliverables} />
-          <RelatedWork title="More projects" items={project.related} />
         </div>
       </article>
 
-      <ContactCTA cta={site.contactCta} email={profile.email} />
+      <div className="pt-16 md:pt-24">
+      <ContactCTA />
+      </div>
     </>
   );
 }
