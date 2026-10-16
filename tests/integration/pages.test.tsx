@@ -69,12 +69,22 @@ describe("homepage", () => {
     expect(screen.queryByText("Selected recognition")).not.toBeInTheDocument();
   });
 
-  it("prioritises only the hero image and lazy-loads the rest", async () => {
+  it("introduces the artist with a portrait that opens full size in a new tab", async () => {
+    await renderPage(load);
+    const portrait = screen.getByRole("link", { name: "Open the portrait of Test Artist full size in a new tab" });
+    expect(portrait).toHaveAttribute("href", "/_next/static/media/portrait.jpg");
+    expect(portrait).toHaveAttribute("target", "_blank");
+    expect(screen.getByText("Fixture City")).toBeInTheDocument();
+    // Only the opening sentence of the bio sits under the portrait.
+    expect(screen.getByText("Fixture short biography.")).toBeInTheDocument();
+  });
+
+  it("prioritises only the hero portrait and lazy-loads the rest", async () => {
     await renderPage(load);
     const images = screen.getAllByRole("img");
     const preloaded = images.filter((img) => img.getAttribute("data-preload") === "true");
     expect(preloaded).toHaveLength(1);
-    expect(preloaded[0]).toHaveAccessibleName("Fixture description of a tall painting");
+    expect(preloaded[0]).toHaveAccessibleName("Fixture portrait of the artist");
     expect(images.filter((img) => img.getAttribute("loading") === "lazy").length).toBeGreaterThan(3);
   });
 });

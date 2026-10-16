@@ -27,7 +27,9 @@ export function fixtureContent(): Content {
     profile: {
       name: "Test Artist",
       headline: "Fixture positioning statement.",
-      shortBio: "Fixture short biography.",
+      shortBio: "Fixture short biography. A second fixture sentence.",
+      location: "Fixture City",
+      portrait: img("portrait", 1600, 2000, "Fixture portrait of the artist"),
       email: "studio@example.com",
       socialLinks: [{ platform: "instagram", url: "https://example.com/instagram" }],
       recognition: [],

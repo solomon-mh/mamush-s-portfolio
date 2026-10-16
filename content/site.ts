@@ -6,7 +6,7 @@
  * own details. Only add biographical facts and credits the artist approves.
  */
 import type { ProfileContent, SiteContent } from "@/content/types";
-import studio from "./images/studio/artist-in-studio.jpg";
+import portrait from "./images/studio/artist-portrait.jpg";
 
 export const site: SiteContent = {
   siteName: "Mamush",
@@ -54,15 +54,16 @@ Painting lets me hold that moment still. Animation lets me release it.`,
   approach: `Projects usually start with a conversation and a set of loose sketches. From there I share colour studies and a short written direction before moving to final artwork, so there are no surprises.
 
 I'm happy to work with art directors, agencies and studios on commissions of any scale, from a single editorial illustration to a full animated sequence.`,
+  location: "Addis Ababa, Ethiopia",
   email: "mamush@gmail.com",
   socialLinks: [
     { platform: "instagram", url: "https://www.instagram.com/" },
     { platform: "vimeo", url: "https://vimeo.com/" },
   ],
   portrait: {
-    src: studio,
-    alt: "A painter in a dim studio holding a palette, with a model in a white dress and a seated woman nearby, in muted greys",
-    caption: "Studio — sample image: James McNeill Whistler, The Artist in His Studio, 1865–66. Art Institute of Chicago, public domain.",
+    src: portrait,
+    alt: "Portrait of a man with dark curly hair and a beard, in a black velvet jacket and white shirt, hands clasped on a table in a dim, high-ceilinged hall",
+    caption: "Portrait — sample image: photograph by Vitaliy Shevchenko, Unsplash licence.",
   },
   experience: [],
   recognition: [],

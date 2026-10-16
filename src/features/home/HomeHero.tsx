@@ -1,11 +1,7 @@
 import Link from "next/link";
-import { getImageProps } from "next/image";
-import { WallLabel } from "@/components/gallery/WallLabel";
 import { ArtworkImage } from "@/components/media/ArtworkImage";
-import { HeroLoop } from "@/components/media/HeroLoop";
-import type { ArtworkCard } from "@/content";
-import { altText, imageDimensions } from "@/lib/images";
-import { hrefFor } from "@/lib/routes";
+import type { ArtImage } from "@/content";
+import { imageDimensions } from "@/lib/images";
 
 interface HeroDiscipline {
   title: string;
@@ -15,17 +11,19 @@ interface HeroDiscipline {
 
 /**
  * The opening screen, sized to fit the viewport: who the artist is, what they
- * make and where to go next on the left; one signature work hung on a
- * "gallery wall" on the right. The artwork is the LCP element, so it is never
- * delayed by animation.
+ * make and where to go next on the left; the artist's portrait, name, location
+ * and a short introduction on the right. Selecting the portrait opens it full
+ * size in a new tab. The portrait is the LCP element, so it is never delayed
+ * by animation.
  */
 export function HomeHero({
   name,
   headline,
   availability,
   availabilityHref,
-  artwork,
-  loopUrl,
+  portrait,
+  location,
+  intro,
   disciplines,
 }: {
   name: string;
@@ -33,19 +31,16 @@ export function HomeHero({
   availability?: string | null;
   /** Where the availability note leads, e.g. a mailto: link. */
   availabilityHref?: string | null;
-  artwork: ArtworkCard | null;
-  loopUrl?: string | null;
+  portrait?: ArtImage | null;
+  location?: string | null;
+  /** One or two short sentences under the portrait. */
+  intro?: string | null;
   disciplines: HeroDiscipline[];
 }) {
-  const image = artwork?.image ?? null;
-  const dims = imageDimensions(image);
+  const dims = imageDimensions(portrait);
   const ratio = dims ? dims.width / dims.height : 4 / 5;
-  const href = artwork ? hrefFor("artwork", artwork.slug) : null;
-  const title = artwork?.title ?? "Untitled";
-  // An optimised poster URL for the optional animation loop.
-  const poster = image ? getImageProps({ src: image.src, alt: "", width: 1600, quality: 75 }).props.src : "";
-  // Fit the work inside the wall panel without cropping or overflowing the screen.
-  const artWidth = `min(100%, calc((100svh - var(--header-height) - 15rem) * ${ratio.toFixed(4)}))`;
+  // Fit the portrait inside the panel without cropping or overflowing the screen.
+  const portraitWidth = `min(100%, calc((100svh - var(--header-height) - 15rem) * ${ratio.toFixed(4)}))`;
 
   return (
     <section aria-labelledby="hero-name" className="page-gutter mx-auto max-w-page pb-4 pt-8 md:pb-12 lg:pt-10">
@@ -101,38 +96,28 @@ export function HomeHero({
           )}
         </div>
 
-        {artwork && image && dims && (
+        {portrait && dims && (
           <figure className="flex flex-col justify-center bg-paper-deep p-6 sm:p-10 lg:col-span-6 lg:p-12">
-            <div className="mx-auto w-full" style={{ maxWidth: artWidth }}>
-              {loopUrl ? (
-                <HeroLoop
-                  src={loopUrl}
-                  poster={poster}
-                  width={dims.width}
-                  height={dims.height}
-                  label={`Animation preview: ${altText(image, title) || title}`}
+            <div className="mx-auto w-full" style={{ maxWidth: portraitWidth }}>
+              <a
+                href={portrait.src.src}
+                target="_blank"
+                rel="noopener"
+                aria-label={`Open the portrait of ${name} full size in a new tab`}
+                className="block shadow-[0_18px_40px_-24px_rgba(24,24,26,0.45)]"
+              >
+                <ArtworkImage
+                  image={portrait}
+                  fallbackAlt={`Portrait of ${name}`}
+                  priority
+                  className="card-media"
+                  sizes="(min-width: 1440px) 600px, (min-width: 1024px) 42vw, 92vw"
                 />
-              ) : href ? (
-                <Link href={href} className="group block shadow-[0_18px_40px_-24px_rgba(24,24,26,0.45)]">
-                  <ArtworkImage
-                    image={image}
-                    fallbackAlt={title}
-                    priority
-                    className="card-media"
-                    sizes="(min-width: 1440px) 600px, (min-width: 1024px) 42vw, 92vw"
-                  />
-                </Link>
-              ) : (
-                <ArtworkImage image={image} fallbackAlt={title} priority sizes="(min-width: 1024px) 42vw, 92vw" />
-              )}
+              </a>
               <figcaption className="mt-4">
-                {href ? (
-                  <Link href={href} className="group inline-block">
-                    <WallLabel title={title} year={artwork.year} lines={[artwork.medium, artwork.dimensions]} as="p" size="sm" />
-                  </Link>
-                ) : (
-                  <WallLabel title={title} year={artwork.year} lines={[artwork.medium]} as="p" size="sm" />
-                )}
+                <p className="font-display text-[1.1875rem] leading-snug text-ink">{name}</p>
+                {location && <p className="mt-0.5 text-label text-graphite">{location}</p>}
+                {intro && <p className="mt-2 max-w-[44ch] text-label leading-relaxed text-ink-soft">{intro}</p>}
               </figcaption>
             </div>
           </figure>

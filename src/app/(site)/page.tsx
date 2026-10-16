@@ -10,6 +10,11 @@ import { SelectedWork } from "@/features/home/SelectedWork";
 import { enquiryDraft, mailtoHref } from "@/lib/email-links";
 import { personJsonLd, websiteJsonLd } from "@/lib/seo";
 
+/** The opening sentence of a bio, short enough to sit under the hero portrait. */
+function firstSentence(text?: string | null): string | null {
+  return text?.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? text ?? null;
+}
+
 export default async function HomePage() {
   const home = await getHome();
   const profile = await getProfile();
@@ -25,13 +30,15 @@ export default async function HomePage() {
         headline={profile.headline}
         availability={site.announcement}
         availabilityHref={profile.email ? mailtoHref(profile.email, enquiryDraft(profile.name, "Commission")) : null}
-        artwork={home.heroArtwork}
-        loopUrl={home.heroLoop}
+        portrait={profile.portrait}
+        location={profile.location}
+        intro={firstSentence(profile.shortBio)}
         disciplines={disciplines}
       />
       <SelectedWork items={home.selectedWork} />
       <DisciplineEntries disciplines={disciplines} />
-      <ArtistIntro name={profile.name} shortBio={profile.shortBio} statement={profile.statement} portrait={profile.portrait} />
+      {/* The portrait already opens the page, so the introduction is text only. */}
+      <ArtistIntro name={profile.name} shortBio={profile.shortBio} statement={profile.statement} />
       {home.featuredProject && <FeaturedProject project={home.featuredProject} />}
       <Recognition items={profile.recognition} />
       <div className="pt-16 md:pt-24">
