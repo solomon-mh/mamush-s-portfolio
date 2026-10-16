@@ -16,7 +16,10 @@ nextEnv.loadEnvConfig(process.cwd());
 
 const { default: config } = await import("../src/payload.config");
 const payload = await getPayload({ config });
-const context = { disableRevalidate: true };
+// A fresh object per call: the storage plugin flags req.context while it
+// uploads, and a shared object would carry that flag into every later call,
+// silently skipping their uploads.
+const context = () => ({ disableRevalidate: true });
 const published = { _status: "published" as const };
 
 if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
@@ -43,7 +46,7 @@ async function media(image: ArtImage | undefined): Promise<number | undefined> {
     const doc = await payload.create({
       collection: "media",
       filePath: file,
-      context,
+      context: context(),
       data: {
         alt: image.alt,
         decorative: image.decorative ?? false,
@@ -87,7 +90,7 @@ console.log("Disciplines");
 for (const d of byOrder(disciplines)) {
   const doc = await payload.create({
     collection: "disciplines",
-    context,
+    context: context(),
     draft: false,
     data: {
       ...published,
@@ -119,7 +122,7 @@ for (const p of byOrder(projects)) {
   }
   const doc = await payload.create({
     collection: "projects",
-    context,
+    context: context(),
     draft: false,
     data: {
       ...published,
@@ -155,7 +158,7 @@ for (const p of projects.filter((x) => x.related?.length)) {
   await payload.update({
     collection: "projects",
     id: projectIds.get(p.slug)!,
-    context,
+    context: context(),
     draft: false,
     data: { related: p.related!.map((s) => projectIds.get(s)!) },
   });
@@ -164,7 +167,7 @@ for (const d of disciplines.filter((x) => x.featuredProjects?.length)) {
   await payload.update({
     collection: "disciplines",
     id: disciplineIds.get(d.slug)!,
-    context,
+    context: context(),
     draft: false,
     data: { featuredProjects: d.featuredProjects!.map((s) => projectIds.get(s)!) },
   });
@@ -174,7 +177,7 @@ console.log("Artworks");
 for (const a of byOrder(artworks)) {
   const doc = await payload.create({
     collection: "artworks",
-    context,
+    context: context(),
     draft: false,
     data: {
       ...published,
@@ -200,7 +203,7 @@ for (const a of byOrder(artworks)) {
 console.log("Site settings and profile");
 await payload.updateGlobal({
   slug: "site-settings",
-  context,
+  context: context(),
   data: {
     siteName: site.siteName,
     siteDescription: site.siteDescription,
@@ -224,7 +227,7 @@ await payload.updateGlobal({
 
 await payload.updateGlobal({
   slug: "profile",
-  context,
+  context: context(),
   data: {
     name: profile.name,
     headline: profile.headline,
