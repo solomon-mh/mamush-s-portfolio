@@ -23,7 +23,8 @@ describe("pasting an image link in the admin", () => {
 
   it("tells public addresses from internal ones", () => {
     for (const ip of ["93.184.216.34", "2606:4700::6810:85e5"]) expect(isPublicAddress(ip)).toBe(true);
-    for (const ip of ["127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "::ffff:7f00:1", "not-an-ip"]) {
+    for (const ip of ["127.0.0.1", "10.1.2.3", "172.16.0.1", "192.168.1.1", "169.254.169.254", "100.64.0.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1", "::ffff:7f00:1",
+      "::127.0.0.1", "2002:7f00:1::1", "2001:0:4136:e378:8000:63bf:3fff:fdd2", "64:ff9b::7f00:1", "64:ff9b:1::a00:1", "2001:db8::1", "ff02::1", "not-an-ip"]) {
       expect(isPublicAddress(ip)).toBe(false);
     }
   });

@@ -16,25 +16,35 @@ import { APIError, executeAccess, Forbidden, type Endpoint, type PayloadRequest 
  * so DNS rebinding can't get past it, and again on every redirect.
  */
 
-const internal = new BlockList();
+const internalV4 = new BlockList();
 for (const [net, prefix] of [
   ["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8], ["169.254.0.0", 16], ["172.16.0.0", 12],
   ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24],
   ["203.0.113.0", 24], ["224.0.0.0", 4], ["240.0.0.0", 4],
-] as const) internal.addSubnet(net, prefix, "ipv4");
-// No ::ffff:0:0/96 rule: BlockList checks IPv4-mapped addresses against the
-// IPv4 rules above, and treats every IPv4 address as mapped, so that rule
-// would block all of them.
+] as const) internalV4.addSubnet(net, prefix, "ipv4");
+// IPv6 is allow-listed: only global unicast (2000::/3), which rules out
+// loopback, IPv4-mapped and -compatible forms, NAT64, unique-local,
+// link-local and multicast. Inside it, refuse the ranges that embed or relay
+// to other addresses (6to4, Teredo) or are reserved.
+const globalUnicast = new BlockList();
+globalUnicast.addSubnet("2000::", 3, "ipv6");
+const reservedV6 = new BlockList();
 for (const [net, prefix] of [
-  ["::", 128], ["::1", 128], ["64:ff9b::", 96], ["100::", 64], ["2001:db8::", 32],
-  ["fc00::", 7], ["fe80::", 10], ["ff00::", 8],
-] as const) internal.addSubnet(net, prefix, "ipv6");
+  ["2001::", 32], // Teredo
+  ["2001:2::", 48], // benchmarking
+  ["2001:10::", 28], // ORCHID
+  ["2001:20::", 28], // ORCHIDv2
+  ["2001:db8::", 32], // documentation
+  ["2002::", 16], // 6to4, embeds an IPv4 address
+  ["3fff::", 20], // documentation
+] as const) reservedV6.addSubnet(net, prefix, "ipv6");
 
 /** True for addresses on the public internet. */
 export function isPublicAddress(address: string): boolean {
   const family = isIP(address);
-  if (family === 0) return false;
-  return !internal.check(address, family === 4 ? "ipv4" : "ipv6");
+  if (family === 4) return !internalV4.check(address, "ipv4");
+  if (family === 6) return globalUnicast.check(address, "ipv6") && !reservedV6.check(address, "ipv6");
+  return false;
 }
 
 const blocked = (host: string) => new APIError(`Links to ${host} aren't allowed: it isn't a public website.`, 400);
