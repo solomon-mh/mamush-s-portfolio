@@ -23,7 +23,8 @@ export const Media: CollectionConfig = {
     group: "Library",
     useAsTitle: "alt",
     defaultColumns: ["filename", "alt", "updatedAt"],
-    description: "Images, short clips, captions and PDFs. Upload large originals — the site makes fast versions automatically.",
+    description:
+      "Images, short clips, captions and PDFs. Upload large originals — the site makes fast versions automatically. To use a link instead, choose “Paste URL”, paste it, and click “Add file” before saving.",
   },
   access: { read: filesOrSignedIn, create: signedIn, update: signedIn, delete: signedIn },
   upload: {
@@ -32,6 +33,12 @@ export const Media: CollectionConfig = {
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/avif", "video/mp4", "video/webm", "text/vtt", "application/pdf"],
     focalPoint: true,
     crop: false,
+    // "Paste URL" first fetches in the browser, which most image sites block
+    // (CORS). An allow-list makes the admin fall back to fetching on the
+    // server; this one accepts any https link (Payload skips empty fields, so
+    // an empty hostname matches every site). Only signed-in users who may
+    // upload can use it.
+    pasteURL: { allowList: [{ protocol: "https", hostname: "" }] },
   },
   fields: [
     {
