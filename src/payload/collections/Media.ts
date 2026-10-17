@@ -2,6 +2,7 @@ import path from "node:path";
 import type { CollectionConfig } from "payload";
 import sharp from "sharp";
 import { filesOrSignedIn, signedIn } from "../access";
+import { pasteURLEndpoint } from "../endpoints/pasteURL";
 import { revalidateAfterChange, revalidateAfterDelete } from "../hooks/revalidate";
 
 /** A tiny blurred version shown while the full image loads. */
@@ -26,6 +27,8 @@ export const Media: CollectionConfig = {
     description:
       "Images, short clips, captions and PDFs. Upload large originals — the site makes fast versions automatically. To use a link instead, choose “Paste URL”, paste it, and click “Add file” before saving.",
   },
+  // Runs before Payload's own paste-url endpoint, which would skip SSRF checks for allow-listed links.
+  endpoints: [pasteURLEndpoint],
   access: { read: filesOrSignedIn, create: signedIn, update: signedIn, delete: signedIn },
   upload: {
     // Local fallback when Vercel Blob isn't configured (development).
@@ -34,10 +37,10 @@ export const Media: CollectionConfig = {
     focalPoint: true,
     crop: false,
     // "Paste URL" first fetches in the browser, which most image sites block
-    // (CORS). An allow-list makes the admin fall back to fetching on the
-    // server; this one accepts any https link (Payload skips empty fields, so
-    // an empty hostname matches every site). Only signed-in users who may
-    // upload can use it.
+    // (CORS). An allow-list makes the admin fall back to the server, and this
+    // one names every https link (Payload skips empty fields, so an empty
+    // hostname matches any site). The server fetch itself is pasteURLEndpoint
+    // (see `endpoints` above), which refuses internal addresses.
     pasteURL: { allowList: [{ protocol: "https", hostname: "" }] },
   },
   fields: [
