@@ -101,7 +101,8 @@ Nothing is sent or stored by the website, so there is no spam to filter. The add
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Absolute site URL for canonical links, the sitemap and sharing images |
+| `NEXT_PUBLIC_SITE_URL` | Absolute site URL for canonical links, the sitemap and sharing images. Optional on Vercel, which supplies the production domain |
+| `GOOGLE_SITE_VERIFICATION` | Optional. The token from Google Search Console's "HTML tag" ownership check |
 | `DATABASE_URL` | Postgres connection string (Neon on Vercel sets it, or `POSTGRES_URL`) |
 | `PAYLOAD_SECRET` | Long random string that signs admin logins (`openssl rand -hex 32`) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for uploads (set by Vercel when a Blob store is connected) |
@@ -122,10 +123,11 @@ On [Vercel](https://vercel.com):
 
 1. Import the repository (framework preset Next.js, Node.js 22).
 2. In the project's **Storage** tab, create a **Neon** Postgres database and a **Blob** store and connect both to the project. This sets `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN`.
-3. Under **Settings → Environment Variables**, add `PAYLOAD_SECRET` (a new random string) and `NEXT_PUBLIC_SITE_URL` (your domain).
+3. Under **Settings → Environment Variables**, add `PAYLOAD_SECRET` (a new random string). `NEXT_PUBLIC_SITE_URL` is optional: without it, the site uses the project's production domain.
 4. Deploy. The build applies database migrations first (`scripts/migrate.mjs`), so the tables are created on the first deploy.
 5. To start from the starter content, run `npm run seed` once on your machine with the production `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN` in `.env.local` (`vercel env pull` fetches them). Or skip it and add the real work in the admin.
 6. Open `https://your-domain/admin`, create the first user, and hand the artist their login.
+7. To appear in Google: in [Search Console](https://search.google.com/search-console), add a **URL prefix** property for the site address, choose the **HTML tag** check, put its `content` value in `GOOGLE_SITE_VERIFICATION` and redeploy, then click **Verify**. Under **Sitemaps**, submit `sitemap.xml`. Indexing usually takes a few days.
 
 After that, content changes need no deploys: publishing in the admin updates the live site. Code changes deploy on each push to the main branch.
 

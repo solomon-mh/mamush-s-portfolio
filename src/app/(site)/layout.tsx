@@ -16,8 +16,11 @@ import "@/styles/globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSettings();
   const profile = await getProfile();
+  // Google Search Console's "HTML tag" ownership check: paste just the token.
+  const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
   return {
     metadataBase: new URL(publicEnv.siteUrl),
+    ...(googleVerification ? { verification: { google: googleVerification } } : {}),
     ...buildSiteMetadata({
       siteName: site.siteName,
       description: profile.seo?.description || site.siteDescription || profile.headline,

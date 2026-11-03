@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Public (browser-safe) configuration. NEXT_PUBLIC_* variables are inlined at
- * build time, so each must be referenced explicitly.
+ * Site configuration, read on the server: canonical URLs, the sitemap and
+ * sharing links are all built from `siteUrl`.
  */
 const publicSchema = z.object({
   siteUrl: z
@@ -12,9 +12,33 @@ const publicSchema = z.object({
 
 export type PublicEnv = z.infer<typeof publicSchema>;
 
+type EnvSource = Partial<Record<"NEXT_PUBLIC_SITE_URL" | "VERCEL_ENV" | "VERCEL_PROJECT_PRODUCTION_URL" | "VERCEL_URL", string>>;
+
+/**
+ * The site's public address. NEXT_PUBLIC_SITE_URL wins when set. Otherwise,
+ * on Vercel, production uses the project's production domain (a custom
+ * domain once one is added, else the .vercel.app one) and previews use their
+ * own deployment URL. Locally it is http://localhost:3000. Without this,
+ * production pages told search engines their address was localhost.
+ */
+export function resolveSiteUrl(env: EnvSource): string {
+  const configured = env.NEXT_PUBLIC_SITE_URL;
+  // A localhost value copied from .env.example must never reach a live deployment.
+  const isLocal = configured ? /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(configured) : false;
+  if (configured && !(isLocal && env.VERCEL_ENV)) return configured;
+  if (env.VERCEL_ENV === "production" && env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
+
 function readPublicEnv(): PublicEnv {
   const parsed = publicSchema.safeParse({
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    siteUrl: resolveSiteUrl({
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+      VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      VERCEL_URL: process.env.VERCEL_URL,
+    }),
   });
   if (!parsed.success) {
     throw new Error(`Invalid configuration:\n${parsed.error.issues.map((i) => `- ${i.message}`).join("\n")}`);
